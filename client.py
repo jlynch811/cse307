@@ -14,6 +14,7 @@ currentCmd = ""
 nValue = 5
 clientSocket = socket(AF_INET, SOCK_STREAM)
 name = ""
+uid = 0
 
 def handleInput(i):
 	global currentCmd
