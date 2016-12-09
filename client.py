@@ -5,6 +5,7 @@
 from socket import *
 import sys
 import pickle
+from Database import *
 
 serverName = 'localhost'
 serverPort = 5898
@@ -110,7 +111,11 @@ def handleLogin(username):
 		print ('From Server:', modifiedSentence)
 
 		name = username
-
+        
+        # Check to see if this is a returning user. If not, add a new user to the users.json file
+        currentUser = getUser(name)
+        if(currentUser == -1):
+            addUser(name)
 
 		connectionStatus = 1
 	else:
@@ -203,6 +208,11 @@ def handleSubscribedGroups(cmdList):
 	currentCmd = "SUBGROUPS"
 	message = currentCmd + " " + str(nValue)
 	sendEncoded(clientSocket, message)
+    
+    # Get the subscribed groups for the current user and print them up to N
+    discussionGroups = getDiscussionGroups(name)
+    for i in range(0, cmdList):
+        print i + ".\t" + discussionGroups[i]['name']
 
 #Handle SUBGROUPS sub Commands
 def handleSubscribedGroupsSubCommand(cmdList):
