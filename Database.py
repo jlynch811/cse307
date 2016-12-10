@@ -174,7 +174,7 @@ def addPost(discussionGroupName, postSubject, postAuthor, postContent):
             data =  json.load(f)
         f.close()
     except ValueError:
-        print 'No data to read in file!'
+        print 'Error reading data!'
         return -1
     
     data['discussionGroups'].append(newPost)
@@ -182,3 +182,26 @@ def addPost(discussionGroupName, postSubject, postAuthor, postContent):
     with open(discussionGroupPath, 'w') as f:
         json.dump(data, f)
     f.close()
+
+def getDiscussionGroup(discussionGroupName):
+    discussionGroupPath = discussionGroupsFilePath + discussionGroupName + ".json"
+    
+    try:
+        with open(discussionGroupPath, 'r') as f:
+            data = json.load(f)
+        f.close()
+    except ValueError:
+        print 'Error reading data!'
+        return -1
+    
+    return data
+
+def getPost(discussionGroupName, postSubject):
+    data = getDiscussionGroup(discussionGroupName)
+    
+    if(data == -1):
+        return -1
+    
+    for post in data:
+        if(post['subject'] == postSubject):
+            return post
