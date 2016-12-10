@@ -1,5 +1,6 @@
-import json, os
+import json, os, datetime
 
+################################################################# CLIENT SIDE ############################################################################
 # user json object:
     # uid: The user id 
     # discussionGroups: Array of discussion groups that this user is subscribed to
@@ -126,16 +127,58 @@ def getReadPosts(uid, discussionGroupToFind):
 
 # Find a user specified by user and if it is found, return it. Otherwise return -1
 def getUser(uid):
-    # Open the json file and load the data
-    with open(userHistoryFilePath, 'r') as f:
-        data = json.load(f)
-    f.close()
-    
-    # Loop through the users array to find the user that has a uid that matches uid. If it is not found, -1 is returned.
-    for user in data['users']:
-        if(user['uid'] == uid):
-            return user
+    try:
+        # Open the json file and load the data
+        with open(userHistoryFilePath, 'r') as f:
+            data = json.load(f)
+        f.close()
+
+        # Loop through the users array to find the user that has a uid that matches uid. If it is not found, -1 is returned.
+        for user in data['users']:
+            if(user['uid'] == uid):
+                return user
+    except ValueError:
+        return -1
     
     return -1
 
+############################################################# SERVER SIDE #################################################################################
+# The path to the folder of discussion groups
+discussionGroupsFilePath = './DiscussionGroups/'
+
+# Add a new discussion group to all of the discussion groups. Each discussion group will be a json file in the directory containing all of the posts
+def addDiscussionGroup(dicussionGroupName):
+    newFilePath = discussionGroupsFilePath + dicussionGroupName + '.json'
     
+    data = {}
+    data['discussionGroups'] = []
+    
+    with open(newFilePath, 'w') as f:    
+        json.dump(data,f)
+    f.close()
+    
+# Add a new post to a specified discussion group.
+def addPost(discussionGroupName, postSubject, postAuthor, postContent):
+    # Make sure to change this to non hard coded timezone unless it doesn't matter
+    newPost = {
+        'subject' : postSubject,
+        'author' : postAuthor,
+        'timeStamp' : str('{:%a, %b %d %X %ZEST %Y}'.format(datetime.datetime.now())),
+        'post' : postContent
+    }
+    
+    discussionGroupPath = discussionGroupsFilePath + discussionGroupName + '.json'
+    
+    try:
+        with open(discussionGroupPath, 'r') as f:
+            data =  json.load(f)
+        f.close()
+    except ValueError:
+        print 'No data to read in file!'
+        return -1
+    
+    data['discussionGroups'].append(newPost)
+    
+    with open(discussionGroupPath, 'w') as f:
+        json.dump(data, f)
+    f.close()

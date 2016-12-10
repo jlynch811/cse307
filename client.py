@@ -336,8 +336,12 @@ def handleLogout():
 def sendEncoded(socket, message):
 	if(debug): print("Sending Message: ", message)
 	socket.send(str.encode(message))
+
 #Program loop
 while True:
-    readInput = input('Enter command: ')
-    print 'readInput: ', readInput
-    #handleInput(readInput)
+    if sys.version_info >= (3,0):
+        readInput = input('Enter command: ')
+    else:
+        readInput = raw_input('Enter command: ')
+        
+    handleInput(readInput)
