@@ -94,32 +94,32 @@ def handleInput(i):
 		print("Unrecognized Command, Incorrect Format, Or Command Is Not Available At This Time")
 
 def handleLogin(username):
-	global connectionStatus
-	global name
-	global clientSocket
+    global connectionStatus
+    global name
+    global clientSocket
 
-	#Only attempt to connect if we're not already connected.
-	if(connectionStatus==0):
-		clientSocket = socket(AF_INET, SOCK_STREAM)
-		clientSocket.connect((serverName,serverPort))
+    #Only attempt to connect if we're not already connected.
+    if(connectionStatus==0):
+        clientSocket = socket(AF_INET, SOCK_STREAM)
+        clientSocket.connect((serverName,serverPort))
 
-		loginRequest = "LOGIN " + str(username) 
-		print("Waiting to send...")
-		sendEncoded(clientSocket, loginRequest)
-		print("Sent...")
-		modifiedSentence = clientSocket.recv(1024)
-		print ('From Server:', modifiedSentence)
+        loginRequest = "LOGIN " + str(username) 
+        print("Waiting to send...")
+        sendEncoded(clientSocket, loginRequest)
+        print("Sent...")
+        modifiedSentence = clientSocket.recv(1024)
+        print ('From Server:', modifiedSentence)
 
-		name = username
-        
+        name = username
+        connectionStatus = 1
+
         # Check to see if this is a returning user. If not, add a new user to the users.json file
         currentUser = getUser(name)
         if(currentUser == -1):
             addUser(name)
 
-		connectionStatus = 1
-	else:
-		print("Already logged in")
+    else:
+        print("Already logged in")
 
 def handleHelp():
 	print("\n\t\t---COMMAND DIRECTORY---\n")
@@ -202,13 +202,13 @@ def handleAllGroupsSubCommand(cmdList):
 
 #Set the current Command to SUBGROUPS
 def handleSubscribedGroups(cmdList):
-	global currentCmd
-	global nValue
+    global currentCmd
+    global nValue
 
-	currentCmd = "SUBGROUPS"
-	message = currentCmd + " " + str(nValue)
-	sendEncoded(clientSocket, message)
-    
+    currentCmd = "SUBGROUPS"
+    message = currentCmd + " " + str(nValue)
+    sendEncoded(clientSocket, message)
+
     # Get the subscribed groups for the current user and print them up to N
     discussionGroups = getDiscussionGroups(name)
     for i in range(0, cmdList):
@@ -338,6 +338,6 @@ def sendEncoded(socket, message):
 	socket.send(str.encode(message))
 #Program loop
 while True:
-	readInput = input('Enter command: ')
-
-	handleInput(readInput)
+    readInput = input('Enter command: ')
+    print 'readInput: ', readInput
+    #handleInput(readInput)
