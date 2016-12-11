@@ -59,6 +59,10 @@ def sendNextN(protocol):
 	message = protocol + " " + str(startRange) + " " + str(endRange)
 	sendEncoded(clientSocket, message)
 
+def subNextN():
+	nextN()
+	handleSubscribedGroups("")
+
 def resetNValue(n):
 	global startRange
 	global endRange
@@ -174,14 +178,16 @@ def displayAllGroups():
 def displaySubGroups():
 	global currentDisplay
 	count = 0
-	print("CUR: ", currentDisplay)
 	for groupname in currentDisplay:
 		pCount = getPostCount(groupname)
-		print("PCOUNT: ",pCount)
-		print(str(count+1)+pCount+" "+ groupname)
+		c = int(pCount)
+		newS =  str(count+1)+ ".\t" + str(c)+"\t"+ groupname
+		print(newS)
 		count+=1
 
 def stripEndTags(s):
+	if(s.endswith('\r')):
+		s = s[:2]
 	if(s.endswith('\n')):
 		s = s[:2]
 	if(s.endswith('\r')):
@@ -337,19 +343,23 @@ def handleSubscribedGroupsSubCommand(cmdList):
 	#Ensure less than n sized arguments
 	if(cmdList[0] == "u" and len(cmdList)<= nValue+1):
 		message = "UNSUB"
-		uCommand(cmdList)
+		uCommandSub(cmdList)
+		return
 
 	elif(cmdList[0] == "n"):
-		message = "NEXTN " + str(nValue)
-		sendEncoded(clientSocket, message)
+		subNextN()
+		return
 
 	elif(cmdList[0] == "q"):
 		currentCmd = ""
+		print("Exiting sub commands")
+		return
 
 	print("Unrecognized Command, Incorrect Format, Or Command Is Not Available At This Time")
 
 def uCommand(cmdList):
 	for val in cmdList[1:]:
+		print("VAL: ", val)
 		try:
 			val = int(val)
 			val = val - 1
@@ -359,6 +369,18 @@ def uCommand(cmdList):
 		try:
 			unsubscribeToGroup(currentDisplay[val].name)
 		except: print("Unable to unsubscribe from group (Likely out of range index)")
+
+def uCommandSub(cmdList):
+	for val in cmdList[1:]:
+		print("VAL: ", val)
+		try:
+			val = int(val)
+			val = val - 1
+		except:
+			print("Incorrect Format")
+			return
+		print("CUR DISPLAY: ", currentDisplay[val])
+		unsubscribeToGroup(currentDisplay[val])
 
 def sCommand(cmdList):
 	for val in cmdList[1:]:
@@ -490,8 +512,10 @@ def unsubscribeToGroup(gname):
 	d = f.readlines()
 	f.seek(0)
 	for i in d:
-	    if i != gname +"\n":
-	    	f.write(i)
+		print("i: ", i.encode())
+		print("gname: ", gname.encode())
+		if (i != gname +"\n" and i!=gname):
+			f.write(i)
 	f.truncate()
 	f.close()
 
@@ -551,20 +575,21 @@ def getPostCount(gname):
 	d = f.readlines()
 	f.seek(0)
 
-	print(gname)
+	#print(gname)
 	gname = stripEndTags(gname)
 
 	g = 0
 	for line in d:
+		l = line.decode()
 		line = stripEndTags(line.decode())
 
 		#print("LINE: ",line)
 		#print("GNAME: ", gname)
 		if(g==1):
 			f.close()
-			return line
+			return l
 		elif(line==gname):
-			print("FOUND IT")
+			#print("FOUND IT")
 			g = 1
 	f.close()
 
