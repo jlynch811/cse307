@@ -9,10 +9,9 @@ import pickle
 
 #Structures
 class Package:
-	def __init__(self, protocol, objlist, name):
+	def __init__(self, protocol, objlist):
 		self.protocol = protocol
 		self.list = objlist
-		self.name = name
 
 class Group:
 	def __init__(self, gid, name):
@@ -67,7 +66,7 @@ def isPickle(s):
 
 def pickleSend(currsocket, prefix, obj):
 	#Pickle is used to send the array over the socket.
-	p = Package(prefix, obj, None)
+	p = Package(prefix, obj)
 	pickledObj = pickle.dumps(p)
 	currsocket.send(pickledObj)
 
@@ -94,14 +93,17 @@ def handleRG(info, currsocket):
 	infoList = info.split()
 	gname = infoList[0]
 
+	toSend = []
 
+	for post in postList:
+		if(post.name == gname):
+			toSend.append(post)
 
-
-
+	pickleSend(currsocket, "READGROUP", toSend)
 
 
 def handlePostCommand(post, currsocket):
-	print("Test")
+	
 
 
 
@@ -141,7 +143,12 @@ while socketList:
 				sendEncoded(s, "LOGOUT")	
 				s.close()
 				socketList.remove(s)
-				
+			'''
+			elif(isPickle(message)):
+				message = message[7:]
+				print("PICKLE MESSAGE:\n", pickle.loads(message))
+			'''
+
 			else:
 				#s.send(message)
 				try: 
