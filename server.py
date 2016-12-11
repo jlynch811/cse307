@@ -67,13 +67,17 @@ def pickleSend(currsocket, prefix, obj):
 def handleUserCommand(command, currsocket):
 	cmdList = command.split(None, 1)
 
-	if(cmdList[0]=="AG"):
+	if(cmdList[0] == "ALLGROUPS"):
 		handleAG(cmdList[1], currsocket)
+	elif(cmdList[0] == "LOGIN"):
+		currsocket.send(command.encode())
 
 def handleAG(info, currsocket):
 	infoList = info.split()
 	indices = groupList[int(infoList[0]):int(infoList[1])]
-	pickleSend(currsocket, "AG", indices)
+	pickleSend(currsocket, "ALLGROUPS", indices)
+
+	print("pickle sent AG to client")
 
 
 
@@ -112,13 +116,12 @@ while socketList:
 				sendEncoded(s, "LOGOUT")	
 				s.close()
 				socketList.remove(s)
+			else:
+				#s.send(message)
+				handleUserCommand(message.decode(), s)
 
-
+			'''		
 			elif(isPickle(message)):
 				message = message[7:]
 				print("PICKLE MESSAGE:\n", pickle.loads(message))
-
-
-			else:
-				s.send(message)
-				handleUserCommand(str(message), writeSockets)
+			'''
