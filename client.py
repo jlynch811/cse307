@@ -394,6 +394,7 @@ def amSubscribed(gname):
 
 
 def initPostCount(gname):
+	print("InitPostCount")
 
 
 def removePostCount(gname):
