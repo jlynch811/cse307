@@ -13,9 +13,30 @@ debug=1
 connectionStatus = 0
 currentCmd = ""
 nValue = 5
+startRange = 0
+endRange = 4
 clientSocket = socket(AF_INET, SOCK_STREAM)
 name = ""
 uid = 0
+subPath = r'Subs/'
+postCountPath = r'SubPosts/'
+
+def nextN():
+	global startRange
+	global endRange
+	global nValue
+
+	startRange = startRange + nValue
+	endRange = endRange + nValue
+
+def resetNValue(n):
+	global startRange
+	global endRange
+	global nValue
+
+	nValue = n
+	startRange = 0
+	endRange = nValue-1
 
 def handleInput(i):
 	global currentCmd
@@ -24,6 +45,8 @@ def handleInput(i):
 	cmdList = i.split()
 
 	#Check if we're in a command "mode." These return immediately after executing
+	if(connectionStatus ==1):
+		runTests()
 
 	#SUB AG COMMANDS
 	if(currentCmd == "ALLGROUPS"):
@@ -67,7 +90,7 @@ def handleInput(i):
 	elif(cmdList[0] == "ag" and (len(cmdList)==1 or len(cmdList)==2)):
 		#Set the optional nValue
 		if(len(cmdList)==2):
-			nValue = int(cmdList[1])
+			resetNValue(int(cmdList[1]))
 			if(debug): print("nValue set: ", nValue)
 
 		handleAllGroups(cmdList)
@@ -76,7 +99,7 @@ def handleInput(i):
 	elif(cmdList[0] == "sg" and (len(cmdList)==1 or len(cmdList)==2)):
 		#Set the optional nValue
 		if(len(cmdList)==2):
-			nValue = int(cmdList[1])
+			resetNValue(int(cmdList[1]))
 			if(debug): print("nValue set: ", nValue)
 
 		handleSubscribedGroups(cmdList)
@@ -85,7 +108,7 @@ def handleInput(i):
 	elif(cmdList[0] == "rg" and (len(cmdList)==2 or len(cmdList)==3)):
 		#Set the optional nValue
 		if(len(cmdList)==3):
-			nValue = int(cmdList[2])
+			resetNValue(int(cmdList[2]))
 			if(debug): print("nValue set: ", nValue)
 
 		handleReadGroup(cmdList)
@@ -158,7 +181,7 @@ def handleAllGroups(cmdList):
 	global nValue
 
 	currentCmd = "ALLGROUPS"
-	message = currentCmd + " " + str(nValue)
+	message = currentCmd + " " + str(startRange, endRange)
 	sendEncoded(clientSocket, message)
 
 #Handle ALLGROUPS sub Commands
@@ -333,6 +356,90 @@ def handleLogout():
 def sendEncoded(socket, message):
 	if(debug): print("Sending Message: ", message)
 	socket.send(str.encode(message))
+
+
+def subscribeToGroup(gname):
+	if(amSubscribed(gname)):
+		print("Already Subscribed to ", gname)
+		return
+
+	fileName = subPath + name+"sub.txt"
+	subFile = open(fileName, 'a+')
+
+	subFile.write(gname+"\n")
+
+def unsubscribeToGroup(gname):
+	fileName = subPath + name+"sub.txt"
+	f = open(fileName,"r+")
+	d = f.readlines()
+	f.seek(0)
+	for i in d:
+	    if i != gname +"\n":
+	    	f.write(i)
+	f.truncate()
+	f.close()
+
+	removePostCount(gname)
+
+def amSubscribed(gname):
+	if(debug): print("Am Subscribed Check: ", gname)
+
+	fileName = subPath + name + "sub.txt"
+	with open(fileName, 'a+b') as subFile:
+
+		for line in subFile:
+			if(line==gname.encode() +b'\r\n'):
+				return 1
+	return 0
+
+
+def initPostCount(gname):
+
+
+def removePostCount(gname):
+	fileName = postCountPath + name + "count.txt"
+	with open(fileName, 'a+b') as countFile:
+
+		lineNo = -1
+		d = countFile.readlines()
+		countFile.seek(0)
+		count=0
+		for line in countFile:
+			count = count+1
+			if(count%2!=0):
+				if(line==gname.encode() +b'\r\n'):
+					lineNo = count
+
+	#Remove the line and the next
+	if(lineNo!=-1):
+		removeLine(fileName,lineNo)
+		removeLine(fileName,lineNo)
+
+def removeLine(fileName, lineNo):
+	f = open(fileName,"r+")
+	d = f.readlines()
+	f.seek(0)
+	count = 1
+	for i in d:
+	    if(lineNo != count):
+	    	f.write(i)
+	    count = count + 1
+	f.truncate()
+	f.close()
+
+
+def runTests():
+	print("RUNNING TESTS: ")
+	subscribeToGroup("testgroup");
+	subscribeToGroup("testgroup3");
+
+	unsubscribeToGroup("testgroup2");
+
+	amSubscribed("testgroup3")
+
+	#removePostCount("test2")
+
+
 
 #Program loop
 while True:
