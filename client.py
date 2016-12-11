@@ -45,8 +45,8 @@ def handleInput(i):
 	cmdList = i.split()
 
 	#Check if we're in a command "mode." These return immediately after executing
-	if(connectionStatus ==1):
-		runTests()
+	#if(connectionStatus ==1):
+		#runTests()
 
 	#SUB AG COMMANDS
 	if(currentCmd == "ALLGROUPS"):
@@ -398,9 +398,9 @@ def amSubscribed(gname):
 
 def initSubFile():
 	fileName = subPath + name + "sub.txt"
-	open(fileName, 'a+')
+	subFile = open(fileName, 'a+')
 
-	close(subFile)
+	subFile.close()
 
 def initPostCount(gname):
 	print("InitPostCount")
