@@ -43,10 +43,19 @@ def loadGroups(filePath):
 		gp.append(Group(11111, "Somesubject"+str(i)))
 
 	return gp
+
+def loadPosts(filePath):
+	pp = []
+	for j in range(0, 10):
+		for i in range(0,10):
+			pp.append(Post(j*10 + i, str(i)+"th subject", "hello my name is slim shady", "person "+str(i), "Somesubject"+str(j)))
+
+	return pp
+
 groupList = loadGroups("no current filepath")
+postList = loadPosts("no current filepath")
 socketList = []
 outputSocketList = []
-postList = []
 
 #Helper Functions
 
