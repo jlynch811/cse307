@@ -174,7 +174,7 @@ def addPost(discussionGroupName, postSubject, postAuthor, postContent):
             data =  json.load(f)
         f.close()
     except ValueError:
-        print 'Error reading data!'
+        print ('Error reading data!')
         return -1
     
     data['discussionGroups'].append(newPost)
@@ -191,7 +191,7 @@ def getDiscussionGroup(discussionGroupName):
             data = json.load(f)
         f.close()
     except ValueError:
-        print 'Error reading data!'
+        print ('Error reading data!')
         return -1
     
     return data
@@ -205,3 +205,19 @@ def getPost(discussionGroupName, postSubject):
     for post in data:
         if(post['subject'] == postSubject):
             return post
+
+def getPostContent(discussionGroupName, postSubject):
+    data = getPost(discussionName, postSubject)
+    
+    if(data == -1):
+        return -1
+    
+    return data['post']
+
+def getPostTimeStamp(discussionGroupname, postSubject):
+    data = getPost(discussionName, postSubject)
+    
+    if(data == -1):
+        return -1
+    
+    return data['timeStamp']
