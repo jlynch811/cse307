@@ -181,7 +181,7 @@ def handleAllGroups(cmdList):
 	global nValue
 
 	currentCmd = "ALLGROUPS"
-	message = currentCmd + " " + str(startRange, endRange)
+	message = currentCmd + " " + str(startRange) + " " + str(endRange)
 	sendEncoded(clientSocket, message)
 
 #Handle ALLGROUPS sub Commands
