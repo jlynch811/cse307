@@ -24,6 +24,7 @@ subPath = r'Subs/'
 postCountPath = r'SubPosts/'
 currentDisplay = []
 currentGroup = ""
+postList = []
 
 #Structures
 
@@ -165,6 +166,7 @@ def recvFunc(threadName, val):
 
 def handleServerInput(protocol, list):
 	global currentDisplay
+	global postList
 
 	if(debug): print("PROTOCOL: ", protocol)
 
@@ -172,6 +174,9 @@ def handleServerInput(protocol, list):
 	if(protocol=="ALLGROUPS"):
 		currentDisplay = list
 		displayAllGroups()
+
+	if(protocol=="READGROUP"):
+		postList = list
 
 def displayAllGroups():
 	count = 0
@@ -466,6 +471,7 @@ def handleReadGroupSubCommand(cmdList):
 	if(cmdList[0] == "q"):
 		currentCmd = ""
 		currentGroup = ""
+		postList = []
 
 	#[id] command
 	else:
