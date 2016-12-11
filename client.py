@@ -398,9 +398,9 @@ def amSubscribed(gname):
 
 def initSubFile():
 	fileName = subPath + name + "sub.txt"
-	subFile = open(fileName, 'a+')
+	open(fileName, 'a+')
 
-	subFile.close()
+	close(subFile)
 
 def initPostCount(gname):
 	print("InitPostCount")
@@ -463,34 +463,5 @@ while True:
         readInput = input('Enter command: ')
     else:
         readInput = raw_input('Enter command: ')
-
-
-    clientSocket.setblocking(0)
-
-	socketList = socketList + [clientSocket]
-
-
-	while socketList:
-		readSockets, writeSockets, exceptSockets = select.select(socketList, outputSocketList, socketList)
-
-		for s in readSockets:
-
-			#Not server socket. Handle what client sent
-			else:
-				message = s.recv(1024) 
-				print("Received from Server: ", message)
-
-				#CHECK FOR EOF
-				if(not message):
-					print("RECEIVED EOF")
-					sendEncoded(s, "LOGOUT")	
-					s.close()
-					socketList.remove(s)
-
-
-				elif(isPickle(message)):
-					message = message[7:]
-					print("PICKLE MESSAGE:\n", pickle.loads(message))
-
         
     handleInput(readInput)
