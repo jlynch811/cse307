@@ -23,6 +23,7 @@ uid = 0
 subPath = r'Subs/'
 postCountPath = r'SubPosts/'
 currentDisplay = []
+currentGroup = ""
 
 #Structures
 
@@ -36,6 +37,8 @@ class Group:
 		self.name = name
 
 class Post: 
+	def getTimeStamp(self):
+		return 0.1
 	def __init__(self, pid, subject, body, userid):
 		self.pid = pid
 		self.subject = subject
@@ -43,8 +46,7 @@ class Post:
 		self.userid = userid
 		self.time = self.getTimeStamp()
 
-	def getTimeStamp():
-		return 0.1
+	
 
 def nextN():
 	global startRange
@@ -399,15 +401,18 @@ def sCommand(cmdList):
 def handleReadGroup(cmdList):
 	global currentCmd
 	global nValue
+	global currentGroup
 
 	currentCmd = "READGROUP"
-	message = currentCmd + " " + cmdList[1] + " " + str(nValue)
+	currentGroup = cmdList[1]
+	message = currentCmd + " " + cmdList[1] + " " + str(startRange) + " " + str(endRange)
 	sendEncoded(clientSocket, message)
 
 #Handle READGROUP sub Commands
 def handleReadGroupSubCommand(cmdList):
 	global currentCmd
 	global nValue
+	global currentGroup
 
 	if(debug): print("Read Groups Sub Command")
 
@@ -435,8 +440,8 @@ def handleReadGroupSubCommand(cmdList):
 	#List Next N Posts Command
 	if(cmdList[0] == "n" and len(cmdList) == 1):
 
-		message = "NEXTN " + str(nValue)
-		sendEncoded(clientSocket, message)
+		sendNextN("READGROUP " + currentGroup)
+		return
 
 	#Post to Group Command
 	if(cmdList[0] == "p" and len(cmdList) == 1):
@@ -454,14 +459,12 @@ def handleReadGroupSubCommand(cmdList):
 		print("POST BODY: \n", postBody)
 
 		postList = [subjectStr, postBody]
-
-		#Pickle is used to send the array over the socket.
-		pickledPost = pickle.dumps(postList)
-		clientSocket.send(str.encode("PICKLE ") + pickledPost)
+		sendPost(subjectStr, postBody)
 
 	#Quit RG Command
 	if(cmdList[0] == "q"):
 		currentCmd = ""
+		currentGroup = ""
 
 	#[id] command
 	else:
@@ -472,6 +475,13 @@ def handleReadGroupSubCommand(cmdList):
 		except:
 			print("Unrecognized Command, Incorrect Format, Or Command Is Not Available At This Time")
 			return
+
+def sendPost(subject, content):
+	p = [Post(None, subject, content, name)]
+	package = Package("MAKEPOST", p)
+	pickledPost = pickle.dumps(p)
+	clientSocket.send(pickledPost)
+
 
 def handleLogout():
 	global connectionStatus
