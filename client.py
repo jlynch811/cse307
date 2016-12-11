@@ -6,6 +6,7 @@ from socket import *
 import sys
 import pickle
 import _thread
+import os
 #from Database import *
 
 serverName = 'localhost'
@@ -52,6 +53,11 @@ def nextN():
 
 	startRange = startRange + nValue
 	endRange = endRange + nValue
+
+def sendNextN(protocol):
+	nextN()
+	message = protocol + " " + str(startRange) + " " + str(endRange)
+	sendEncoded(clientSocket, message)
 
 def resetNValue(n):
 	global startRange
@@ -165,6 +171,23 @@ def displayAllGroups():
 	for group in currentDisplay:
 		print(str(count+1)+ ". ("+amSubscribedPrint(group.name)+") "+ group.name)
 		count+=1
+def displaySubGroups():
+	global currentDisplay
+	count = 0
+	print("CUR: ", currentDisplay)
+	for groupname in currentDisplay:
+		pCount = getPostCount(groupname)
+		print("PCOUNT: ",pCount)
+		print(str(count+1)+pCount+" "+ groupname)
+		count+=1
+
+def stripEndTags(s):
+	if(s.endswith('\n')):
+		s = s[:2]
+	if(s.endswith('\r')):
+		s = s[:2]
+
+	return s
 
 def handleLogin(username):
     global connectionStatus
@@ -247,36 +270,14 @@ def handleAllGroupsSubCommand(cmdList):
 	#Ensure less than n sized arguments
 	if(cmdList[0] == "s" and len(cmdList)<= nValue+1):
 		message = "SUB"
-
-		for val in cmdList[1:]:
-			try:
-				val = int(val)
-				val = val - 1
-			except:
-				print("Incorrect Format")
-				return
-			try:
-				subscribeToGroup(currentDisplay[val].name)
-			except: print("Unable to subscribe to group (Likely out of range index)")
+		sCommand(cmdList)
 
 	elif(cmdList[0] == "u" and len(cmdList)<= nValue+1):
 		message = "UNSUB"
-
-		for val in cmdList[1:]:
-			try:
-				val = int(val)
-				val = val - 1
-			except:
-				print("Incorrect Format")
-				return
-			try:
-				unsubscribeToGroup(currentDisplay[val].name)
-			except: print("Unable to unsubscribe from group (Likely out of range index)")
+		uCommand(cmdList)
 
 	elif(cmdList[0] == "n"):
-		nextN()
-		message = "ALLGROUPS " + str(startRange) + " " + str(endRange)
-		sendEncoded(clientSocket, message)
+		sendNextN("ALLGROUPS")
 
 	elif(cmdList[0] == "q"):
 		currentCmd = ""
@@ -289,15 +290,40 @@ def handleAllGroupsSubCommand(cmdList):
 def handleSubscribedGroups(cmdList):
     global currentCmd
     global nValue
+    global currentDisplay
 
     currentCmd = "SUBGROUPS"
-    message = currentCmd + " " + str(nValue)
-    sendEncoded(clientSocket, message)
+    print("RANGE: ", startRange, endRange)
+    subList = getSubGroups(startRange, endRange)
+    currentDisplay = subList
+    print(subList)
+    print(currentDisplay)
+    displaySubGroups()
+
+
 
     # Get the subscribed groups for the current user and print them up to N
     #discussionGroups = getDiscussionGroups(name)
 	#for i in range(0, cmdList):
         #print i + ".\t" + discussionGroups[i]['name']
+
+def getSubGroups(start, end):
+	fileName = subPath + name+"sub.txt"
+	f = open(fileName,"r+")
+	d = f.readlines()
+	f.seek(0)
+
+	ret = []
+	count = 0
+	for i in d:
+	    if(count>=start and count <=end):
+	    	ret = ret + [i]
+	    count+=1
+
+	f.close()
+
+	return ret
+
 
 #Handle SUBGROUPS sub Commands
 def handleSubscribedGroupsSubCommand(cmdList):
@@ -311,10 +337,7 @@ def handleSubscribedGroupsSubCommand(cmdList):
 	#Ensure less than n sized arguments
 	if(cmdList[0] == "u" and len(cmdList)<= nValue+1):
 		message = "UNSUB"
-
-		for val in cmdList[1:]:
-			message = message + " " + val
-		sendEncoded(clientSocket, message)
+		uCommand(cmdList)
 
 	elif(cmdList[0] == "n"):
 		message = "NEXTN " + str(nValue)
@@ -324,6 +347,31 @@ def handleSubscribedGroupsSubCommand(cmdList):
 		currentCmd = ""
 
 	print("Unrecognized Command, Incorrect Format, Or Command Is Not Available At This Time")
+
+def uCommand(cmdList):
+	for val in cmdList[1:]:
+		try:
+			val = int(val)
+			val = val - 1
+		except:
+			print("Incorrect Format")
+			return
+		try:
+			unsubscribeToGroup(currentDisplay[val].name)
+		except: print("Unable to unsubscribe from group (Likely out of range index)")
+
+def sCommand(cmdList):
+	for val in cmdList[1:]:
+			try:
+				val = int(val)
+				val = val - 1
+			except:
+				print("Incorrect Format")
+				return
+			try:
+				subscribeToGroup(currentDisplay[val].name)
+			except: print("Unable to subscribe to group (Likely out of range index)")
+
 
 #Set the current Command to READGROUP
 def handleReadGroup(cmdList):
@@ -477,6 +525,15 @@ def initSubFile():
 	countFile = open(fileName, 'a+')
 	countFile.close()
 
+def initDirs():
+	directory = "Subs"
+	if not os.path.exists(directory):
+		os.makedirs(directory)
+
+	directory = "SubPosts"
+	if not os.path.exists(directory):
+		os.makedirs(directory)
+
 
 def initPostCount(gname):
 	print("InitPostCount")
@@ -487,6 +544,32 @@ def initPostCount(gname):
 	countFile.write(gname+"\n")
 	countFile.write("0\n")
 	countFile.close()
+
+def getPostCount(gname):
+	fileName = postCountPath + name + "count.txt"
+	f = open(fileName,"r+b")
+	d = f.readlines()
+	f.seek(0)
+
+	print(gname)
+	gname = stripEndTags(gname)
+
+	g = 0
+	for line in d:
+		line = stripEndTags(line.decode())
+
+		#print("LINE: ",line)
+		#print("GNAME: ", gname)
+		if(g==1):
+			f.close()
+			return line
+		elif(line==gname):
+			print("FOUND IT")
+			g = 1
+	f.close()
+
+	return "111"
+
 
 
 def removePostCount(gname):
@@ -533,7 +616,7 @@ def runTests():
 
 
 #Program loop
-
+initDirs()
 while True:
     if sys.version_info >= (3,0):
         readInput = input('Enter command: ')
