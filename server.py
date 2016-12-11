@@ -7,12 +7,40 @@ import sys
 import _thread
 import pickle
 
+#Structures
+class Group:
+	def __init__(self, gid, name):
+		self.gid = gid
+		self.name = name
+
+class Post: 
+	def __init__(self, pid, subject, body, userid):
+		self.pid = pid
+		self.subject = subject
+		self.body = body
+		self.userid = userid
+		self.time = self.getTimeStamp()
+
+	def getTimeStamp():
+		return 0.1
+
+#Program
 serverPort = 5898
 serverSocket = socket(AF_INET,SOCK_STREAM)
 debug=1
 
+#Lists
+def loadGroups(filePath):
+	gp = []
+	for i in range(0,10):
+		gp.append(Group(11111, "Somesubject"+str(i)))
+
+	return gp
+groupList = loadGroups("no current filepath")
 socketList = []
 outputSocketList = []
+
+#Helper Functions
 
 def acceptFunc(threadName, val):
 	print("Accept Func!")
@@ -21,6 +49,36 @@ def sendEncoded(socket, message):
 	print("Sending Message: ", message)
 	socket.send(str.encode(message))
 
+#This is for receiving an array over socket, required for post[subject, body]
+def isPickle(s):
+	cmdList = s.split()
+	print(cmdList[0])
+	if(cmdList[0] == b"PICKLE"):
+		return 1
+	else: return 0
+
+def pickleSend(currsocket, prefix, obj):
+	#Pickle is used to send the array over the socket.
+	pickledObj = pickle.dumps(obj)
+	prefix = prefix + " "
+	currsocket.send(str.encode(prefix) + pickledObj)
+
+
+def handleUserCommand(command, currsocket):
+	cmdList = command.split(None, 1)
+
+	if(cmdList[0]=="AG"):
+		handleAG(cmdList[1], currsocket)
+
+def handleAG(info, currsocket):
+	infoList = info.split()
+	indices = groupList[int(infoList[0]):int(infoList[1])]
+	pickleSend(currsocket, "AG", indices)
+
+
+
+
+#Main Program
 serverSocket.setblocking(0)
 serverSocket.bind(('',serverPort))
 serverSocket.listen(5)
@@ -30,20 +88,6 @@ socketList = socketList + [serverSocket]
 #_thread.start_new_thread( acceptFunc, ("AcceptThread",2,))
 #connectionSocket, addr = serverSocket.accept()
 #socketList = socketList + [connectionSocket]
-
-def handleUserCommand(command):
-	cmdList = command.split()
-
-	if(cmdList[0]=="ag"):
-		print("CMD recognized: ", cmdList[0])
-
-#This is for receiving an array over socket, required for post[subject, body]
-def isPickle(s):
-	cmdList = s.split()
-	print(cmdList[0])
-	if(cmdList[0] == b"PICKLE"):
-		return 1
-	else: return 0
 
 while socketList:
 	readSockets, writeSockets, exceptSockets = select.select(socketList, outputSocketList, socketList)
@@ -77,29 +121,4 @@ while socketList:
 
 			else:
 				s.send(message)
-				handleUserCommand(str(message))
-
-
-'''while True:
-	print ('Ready to serve...')
-	 #Fill in start #Fill in end
-	try:
-		message = connectionSocket.recv(1024) 
-
-		print("Received from client: ", message)
-
-		connectionSocket.send(message)
-
-	except IOError:
-		#Send response message for file not found
-		#Fill in start
-		connectionSocket.send(str.encode("HTTP://1.1 404 NOT FOUND\r\n\r\n"))
-		connectionSocket.send(str.encode("404 Not Found"))
-		#Fill in end
-		#Close client socket
-		#Fill in start
-		connectionSocket.close()
-		print("Socket Closed")
-		#Fill in end 
-serverSocket.close()
-print("Socket Closed")'''
+				handleUserCommand(str(message), writeSockets)
