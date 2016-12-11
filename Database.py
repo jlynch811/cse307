@@ -40,7 +40,7 @@ def addUser(name):
     f.close()
 
 # Add a new discussion group to a specified user
-def addDiscussionGroup(uid, discussionGroup):
+def addDiscussionGroupToUser(uid, discussionGroup):
     # Create new discussion group json object
     newDiscussionGroup = {
         'name' : discussionGroup,
@@ -70,7 +70,7 @@ def addDiscussionGroup(uid, discussionGroup):
     f.close()
  
  # Add a post to the specified user's specified discussionGroup
-def addReadPost(uid, discussionGroupToFind, post):
+def addReadPostToUser(uid, discussionGroupToFind, post):
     # Load in the data from the json file
     with open(userHistoryFilePath, 'r') as f:
         data = json.load(f)
@@ -97,7 +97,7 @@ def addReadPost(uid, discussionGroupToFind, post):
     f.close()
 
 # Return the list of discussion groups for a specified user    
-def getDiscussionGroups(uid):
+def getDiscussionGroupsFromUser(uid):
     # Open the json file and load the data
     with open(userHistoryFilePath, 'r') as f:
         data = json.load(f)
@@ -111,7 +111,7 @@ def getDiscussionGroups(uid):
     return -1
 
 # Get the list of read posts for a given user and discussion group
-def getReadPosts(uid, discussionGroupToFind):
+def getReadPostsFromUser(uid, discussionGroupToFind):
     # Open the json file and load the data
     with open(userHistoryFilePath, 'r') as f:
         data = json.load(f)
@@ -142,6 +142,19 @@ def getUser(uid):
     
     return -1
 
+def getDiscussionGroupNamesFromUser(uid):
+    data = getDiscussionGroupsFromUser(uid)
+    
+    if(data == -1):
+        return -1
+    
+    discussionGroupNames = []
+    
+    for discussionGroup in data:
+        discussionGroupNames.append(discussionGroup['name'])
+        
+    return discussionGroupNames
+
 ############################################################# SERVER SIDE #################################################################################
 # The path to the folder of discussion groups
 discussionGroupsFilePath = './DiscussionGroups/'
@@ -151,7 +164,7 @@ def addDiscussionGroup(dicussionGroupName):
     newFilePath = discussionGroupsFilePath + dicussionGroupName + '.json'
     
     data = {}
-    data['discussionGroups'] = []
+    data['posts'] = []
     
     with open(newFilePath, 'w') as f:    
         json.dump(data,f)
@@ -177,12 +190,13 @@ def addPost(discussionGroupName, postSubject, postAuthor, postContent):
         print ('Error reading data!')
         return -1
     
-    data['discussionGroups'].append(newPost)
+    data['posts'].append(newPost)
     
     with open(discussionGroupPath, 'w') as f:
         json.dump(data, f)
     f.close()
 
+# Returns a discussion group specified by discussionGroupName
 def getDiscussionGroup(discussionGroupName):
     discussionGroupPath = discussionGroupsFilePath + discussionGroupName + ".json"
     
@@ -196,28 +210,64 @@ def getDiscussionGroup(discussionGroupName):
     
     return data
 
+# Returns a post json object from the specified discussion group with the specified subject
+# If you just want the actual values from the post in string form, look below
 def getPost(discussionGroupName, postSubject):
     data = getDiscussionGroup(discussionGroupName)
     
     if(data == -1):
         return -1
     
-    for post in data:
+    for post in data['posts']:
         if(post['subject'] == postSubject):
             return post
 
+# Returns the content of the post in the specified discussion group with the specified subject
 def getPostContent(discussionGroupName, postSubject):
-    data = getPost(discussionName, postSubject)
+    data = getPost(discussionGroupName, postSubject)
     
     if(data == -1):
         return -1
     
     return data['post']
 
-def getPostTimeStamp(discussionGroupname, postSubject):
-    data = getPost(discussionName, postSubject)
+# Returns the timestamp of the post in the specified discussion group with the specified subject
+def getPostTimeStamp(discussionGroupName, postSubject):
+    data = getPost(discussionGroupName, postSubject)
     
     if(data == -1):
         return -1
     
     return data['timeStamp']
+
+# Returns the author of the post in the specified discussion group with the specified subject
+def getPostAuthor(discussionGroupName, postSubject):
+    data = getPost(discussionGroupName, postSubject)
+    
+    if(data == -1):
+        return -1
+    
+    return data['author']
+
+# Returns names of all the discussionGroups
+def getDiscussionGroupNames():
+    discussionGroupNames = []
+    
+    for file in os.listdir(discussionGroupsFilePath):
+        if file.endswith('.json'):
+            discussionGroupNames.append(os.path.splitext(file)[0])
+    
+    return discussionGroupNames
+
+# Returns the number of posts that this particular discussion group currently has
+def getNumPosts(discussionGroupName):
+    data = getDiscussionGroup(discussionGroupName)
+    
+    if(data == -1):
+        return -1
+    
+    return len(data['posts'])
+
+#addDiscussionGroup('reddit')
+addPost('reddit', 'test2', 'brian', 'this is a test')
+print (getNumPosts('reddit'))
