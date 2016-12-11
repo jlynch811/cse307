@@ -103,9 +103,7 @@ def handleRG(info, currsocket):
 
 
 def handlePostCommand(post, currsocket):
-	
-
-
+	print("test")
 
 
 
@@ -143,11 +141,6 @@ while socketList:
 				sendEncoded(s, "LOGOUT")	
 				s.close()
 				socketList.remove(s)
-			'''
-			elif(isPickle(message)):
-				message = message[7:]
-				print("PICKLE MESSAGE:\n", pickle.loads(message))
-			'''
 
 			else:
 				#s.send(message)
