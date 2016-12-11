@@ -155,6 +155,23 @@ def getDiscussionGroupNamesFromUser(uid):
         
     return discussionGroupNames
 
+def addReadPostToUser(uid, discussionGroupToFind, newPostSubject):
+    # Open the json file and load the data
+    with open(userHistoryFilePath, 'r') as f:
+        data = json.load(f)
+    f.close()
+    
+    # Look for the specified user and discussion group. If found return it's list of read posts, otherwise return -1
+    for user in data['users']:
+        if(user['uid'] == uid):
+            for discussionGroup in user['discussionGroups']:
+                if(discussionGroup['name'] == discussionGroupToFind):
+                    discussionGroup['readPosts'].append(newPostSubject)
+                    
+    with open(userHistoryFilePath, 'w') as f:
+        json.dump(data, f)
+    f.close()
+
 ############################################################# SERVER SIDE #################################################################################
 # The path to the folder of discussion groups
 discussionGroupsFilePath = './DiscussionGroups/'
@@ -267,7 +284,3 @@ def getNumPosts(discussionGroupName):
         return -1
     
     return len(data['posts'])
-
-#addDiscussionGroup('reddit')
-addPost('reddit', 'test2', 'brian', 'this is a test')
-print (getNumPosts('reddit'))
