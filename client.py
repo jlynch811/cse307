@@ -21,6 +21,7 @@ name = ""
 uid = 0
 subPath = r'Subs/'
 postCountPath = r'SubPosts/'
+currentDisplay = []
 
 #Structures
 
@@ -43,14 +44,6 @@ class Post:
 
 	def getTimeStamp():
 		return 0.1
-
-#This is for receiving an array over socket, required for post[subject, body]
-def isPickle(s):
-	cmdList = s.split()
-	print(cmdList[0])
-	if(cmdList[0] == b"ALLGROUPS"):
-		return 1
-	else: return 0
 
 def nextN():
 	global startRange
@@ -147,6 +140,32 @@ def handleInput(i):
 	else:
 		print("Unrecognized Command, Incorrect Format, Or Command Is Not Available At This Time")
 
+#Multithreading to support stdin and server input
+def recvFunc(threadName, val):
+	while True:
+
+		t = clientSocket.recv(1024)
+		p  = pickle.loads(t)
+		protocol = p.protocol
+		list = p.list
+		handleServerInput(protocol, list)
+
+def handleServerInput(protocol, list):
+	global currentDisplay
+
+	if(debug): print("PROTOCOL: ", protocol)
+
+
+	if(protocol=="ALLGROUPS"):
+		currentDisplay = list
+		displayAllGroups()
+
+def displayAllGroups():
+	count = 0
+	for group in currentDisplay:
+		print(str(count+1)+ ". ("+amSubscribedPrint(group.name)+") "+ group.name)
+		count+=1
+
 def handleLogin(username):
     global connectionStatus
     global name
@@ -166,7 +185,7 @@ def handleLogin(username):
 
         name = username
         connectionStatus = 1
-        _thread.start_new_thread( acceptFunc, ("AcceptThread",2,))
+        _thread.start_new_thread(recvFunc, ("recvThread",2,))
 
         # Check to see if this is a returning user. If not, add a new user to the users.json file
 
@@ -230,19 +249,33 @@ def handleAllGroupsSubCommand(cmdList):
 		message = "SUB"
 
 		for val in cmdList[1:]:
-			message = message + " " + val
-		print("MESSAGE: ", message)
-		sendEncoded(clientSocket, message)
+			try:
+				val = int(val)
+				val = val - 1
+			except:
+				print("Incorrect Format")
+				return
+			try:
+				subscribeToGroup(currentDisplay[val].name)
+			except: print("Unable to subscribe to group (Likely out of range index)")
 
 	elif(cmdList[0] == "u" and len(cmdList)<= nValue+1):
 		message = "UNSUB"
 
 		for val in cmdList[1:]:
-			message = message + " " + val
-		sendEncoded(clientSocket, message)
+			try:
+				val = int(val)
+				val = val - 1
+			except:
+				print("Incorrect Format")
+				return
+			try:
+				unsubscribeToGroup(currentDisplay[val].name)
+			except: print("Unable to unsubscribe from group (Likely out of range index)")
 
 	elif(cmdList[0] == "n"):
-		message = "NEXTN " + str(nValue)
+		nextN()
+		message = "ALLGROUPS " + str(startRange) + " " + str(endRange)
 		sendEncoded(clientSocket, message)
 
 	elif(cmdList[0] == "q"):
@@ -417,22 +450,33 @@ def unsubscribeToGroup(gname):
 	removePostCount(gname)
 
 def amSubscribed(gname):
-	if(debug): print("Am Subscribed Check: ", gname)
+	#if(debug): print("Am Subscribed Check: ", gname.encode())
+
+	initSubFile()
 
 	fileName = subPath + name + "sub.txt"
 	with open(fileName, 'r+b') as subFile:
 
 		for line in subFile:
-			print(line)
 			if(line==gname.encode() +b'\r\n'):
 				return 1
+			elif(line==gname.encode()):
+				return 1
 	return 0
+
+def amSubscribedPrint(gname):
+	if(amSubscribed(gname)):
+		return "s"
+	return " "
 
 def initSubFile():
 	fileName = subPath + name + "sub.txt"
 	subFile = open(fileName, 'a+')
-
 	subFile.close()
+	fileName = postCountPath + name + "count.txt"
+	countFile = open(fileName, 'a+')
+	countFile.close()
+
 
 def initPostCount(gname):
 	print("InitPostCount")
@@ -487,17 +531,6 @@ def runTests():
 
 	#removePostCount("test2")
 
-def acceptFunc(threadName, val):
-	while True:
-
-		t = clientSocket.recv(1024)
-		if(t!=""):
-
-			p  = pickle.loads(t)
-			print("PROTOCOL: ", p.protocol)
-			for var in p.list:
-				print("P: ",var.name)
-			t = ""
 
 #Program loop
 
