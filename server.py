@@ -19,14 +19,15 @@ class Group:
 		self.name = name
 
 class Post: 
-	def __init__(self, pid, subject, body, userid):
+	def __init__(self, pid, subject, body, userid, gname):
 		self.pid = pid
 		self.subject = subject
 		self.body = body
 		self.userid = userid
 		self.time = self.getTimeStamp()
+		self.gname = gname
 
-	def getTimeStamp():
+	def getTimeStamp(self):
 		return 0.1
 
 #Program
@@ -44,6 +45,7 @@ def loadGroups(filePath):
 groupList = loadGroups("no current filepath")
 socketList = []
 outputSocketList = []
+postList = []
 
 #Helper Functions
 
@@ -74,19 +76,31 @@ def handleUserCommand(command, currsocket):
 
 	if(cmdList[0] == "ALLGROUPS"):
 		handleAG(cmdList[1], currsocket)
+
 	elif(cmdList[0] == "LOGIN"):
 		currsocket.send(command.encode())
 
-	elif(cmdList[0] == "SUBGROUPS"):
-		print("TEST")
-		currsocket.send("HELLO".encode())
+	elif(cmdList[0] == "READGROUP"):
+		handleRG(cmdList[1], currsocket)
+
 
 def handleAG(info, currsocket):
 	infoList = info.split()
-	indices = groupList[int(infoList[0]):int(infoList[1])]
+	indices = groupList[ int(infoList[0]) : (int(infoList[1]) + 1) ]
 	pickleSend(currsocket, "ALLGROUPS", indices)
 
-	print("pickle sent AG to client")
+def handleRG(info, currsocket):
+	infoList = info.split()
+	gname = infoList[0]
+
+
+
+
+
+
+
+def handlePostCommand(post, currsocket):
+
 
 
 
@@ -125,13 +139,19 @@ while socketList:
 				sendEncoded(s, "LOGOUT")	
 				s.close()
 				socketList.remove(s)
-
+			'''
 			elif(isPickle(message)):
 				message = message[7:]
 				print("PICKLE MESSAGE:\n", pickle.loads(message))
+			'''
+
 			else:
 				#s.send(message)
-				handleUserCommand(message.decode(), s)
+				try: 
+					message = pickle.loads(message)
+					handlePostCommand(message, s)
+				except: 
+					handleUserCommand(message.decode(), s)
 
 	
 			
