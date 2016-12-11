@@ -28,9 +28,10 @@ currentGroup = ""
 #Structures
 
 class Package:
-	def __init__(self, protocol, objlist):
+	def __init__(self, protocol, objlist, name):
 		self.protocol = protocol
 		self.list = objlist
+		self.name = name
 class Group:
 	def __init__(self, gid, name):
 		self.gid = gid
@@ -478,7 +479,7 @@ def handleReadGroupSubCommand(cmdList):
 
 def sendPost(subject, content):
 	p = [Post(None, subject, content, name)]
-	package = Package("MAKEPOST", p)
+	package = Package("MAKEPOST", p, currentGroup)
 	pickledPost = pickle.dumps(p)
 	clientSocket.send(pickledPost)
 
