@@ -177,6 +177,7 @@ def handleServerInput(protocol, list):
 
 	if(protocol=="READGROUP"):
 		postList = list
+		print(postList)
 
 def displayAllGroups():
 	count = 0

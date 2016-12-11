@@ -9,9 +9,10 @@ import pickle
 
 #Structures
 class Package:
-	def __init__(self, protocol, objlist):
+	def __init__(self, protocol, objlist, name):
 		self.protocol = protocol
 		self.list = objlist
+		self.name = name
 
 class Group:
 	def __init__(self, gid, name):
@@ -66,10 +67,9 @@ def isPickle(s):
 
 def pickleSend(currsocket, prefix, obj):
 	#Pickle is used to send the array over the socket.
-	p = Package(prefix, obj)
+	p = Package(prefix, obj, None)
 	pickledObj = pickle.dumps(p)
 	currsocket.send(pickledObj)
-
 
 def handleUserCommand(command, currsocket):
 	cmdList = command.split(None, 1)
