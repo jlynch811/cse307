@@ -45,8 +45,8 @@ def handleInput(i):
 	cmdList = i.split()
 
 	#Check if we're in a command "mode." These return immediately after executing
-	#if(connectionStatus ==1):
-		#runTests()
+	if(connectionStatus ==1):
+		runTests()
 
 	#SUB AG COMMANDS
 	if(currentCmd == "ALLGROUPS"):
@@ -359,6 +359,7 @@ def sendEncoded(socket, message):
 
 
 def subscribeToGroup(gname):
+	initSubFile()
 	if(amSubscribed(gname)):
 		print("Already Subscribed to ", gname)
 		return
@@ -367,6 +368,8 @@ def subscribeToGroup(gname):
 	subFile = open(fileName, 'a+')
 
 	subFile.write(gname+"\n")
+	subFile.close()
+	initPostCount(gname)
 
 def unsubscribeToGroup(gname):
 	fileName = subPath + name+"sub.txt"
@@ -385,16 +388,29 @@ def amSubscribed(gname):
 	if(debug): print("Am Subscribed Check: ", gname)
 
 	fileName = subPath + name + "sub.txt"
-	with open(fileName, 'a+b') as subFile:
+	with open(fileName, 'r+b') as subFile:
 
 		for line in subFile:
+			print(line)
 			if(line==gname.encode() +b'\r\n'):
 				return 1
 	return 0
 
+def initSubFile():
+	fileName = subPath + name + "sub.txt"
+	subFile = open(fileName, 'a+')
+
+	subFile.close()
 
 def initPostCount(gname):
 	print("InitPostCount")
+	fileName = postCountPath + name + "count.txt"
+
+	countFile = open(fileName, 'a+')
+
+	countFile.write(gname+"\n")
+	countFile.write("0\n")
+	countFile.close()
 
 
 def removePostCount(gname):
@@ -432,11 +448,10 @@ def removeLine(fileName, lineNo):
 def runTests():
 	print("RUNNING TESTS: ")
 	subscribeToGroup("testgroup");
+	subscribeToGroup("testgroup2");
 	subscribeToGroup("testgroup3");
 
-	unsubscribeToGroup("testgroup2");
 
-	amSubscribed("testgroup3")
 
 	#removePostCount("test2")
 
@@ -448,5 +463,34 @@ while True:
         readInput = input('Enter command: ')
     else:
         readInput = raw_input('Enter command: ')
+
+
+    clientSocket.setblocking(0)
+
+	socketList = socketList + [clientSocket]
+
+
+	while socketList:
+		readSockets, writeSockets, exceptSockets = select.select(socketList, outputSocketList, socketList)
+
+		for s in readSockets:
+
+			#Not server socket. Handle what client sent
+			else:
+				message = s.recv(1024) 
+				print("Received from Server: ", message)
+
+				#CHECK FOR EOF
+				if(not message):
+					print("RECEIVED EOF")
+					sendEncoded(s, "LOGOUT")	
+					s.close()
+					socketList.remove(s)
+
+
+				elif(isPickle(message)):
+					message = message[7:]
+					print("PICKLE MESSAGE:\n", pickle.loads(message))
+
         
     handleInput(readInput)
