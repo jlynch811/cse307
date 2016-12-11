@@ -45,8 +45,8 @@ def handleInput(i):
 	cmdList = i.split()
 
 	#Check if we're in a command "mode." These return immediately after executing
-	if(connectionStatus ==1):
-		runTests()
+	#if(connectionStatus ==1):
+		#runTests()
 
 	#SUB AG COMMANDS
 	if(currentCmd == "ALLGROUPS"):
