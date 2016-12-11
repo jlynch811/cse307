@@ -8,6 +8,11 @@ import _thread
 import pickle
 
 #Structures
+class Package:
+	def __init__(self, protocol, objlist):
+		self.protocol = protocol
+		self.list = objlist
+
 class Group:
 	def __init__(self, gid, name):
 		self.gid = gid
@@ -59,9 +64,9 @@ def isPickle(s):
 
 def pickleSend(currsocket, prefix, obj):
 	#Pickle is used to send the array over the socket.
-	pickledObj = pickle.dumps(obj)
-	prefix = prefix + " "
-	currsocket.send(str.encode(prefix) + pickledObj)
+	p = Package(prefix, obj)
+	pickledObj = pickle.dumps(p)
+	currsocket.send(pickledObj)
 
 
 def handleUserCommand(command, currsocket):
@@ -71,6 +76,10 @@ def handleUserCommand(command, currsocket):
 		handleAG(cmdList[1], currsocket)
 	elif(cmdList[0] == "LOGIN"):
 		currsocket.send(command.encode())
+
+	elif(cmdList[0] == "SUBGROUPS"):
+		print("TEST")
+		currsocket.send("HELLO".encode())
 
 def handleAG(info, currsocket):
 	infoList = info.split()
@@ -116,12 +125,13 @@ while socketList:
 				sendEncoded(s, "LOGOUT")	
 				s.close()
 				socketList.remove(s)
+
+			elif(isPickle(message)):
+				message = message[7:]
+				print("PICKLE MESSAGE:\n", pickle.loads(message))
 			else:
 				#s.send(message)
 				handleUserCommand(message.decode(), s)
 
-			'''		
-			elif(isPickle(message)):
-				message = message[7:]
-				print("PICKLE MESSAGE:\n", pickle.loads(message))
-			'''
+	
+			

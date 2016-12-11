@@ -5,6 +5,7 @@
 from socket import *
 import sys
 import pickle
+import _thread
 #from Database import *
 
 serverName = 'localhost'
@@ -20,6 +21,36 @@ name = ""
 uid = 0
 subPath = r'Subs/'
 postCountPath = r'SubPosts/'
+
+#Structures
+
+class Package:
+	def __init__(self, protocol, objlist):
+		self.protocol = protocol
+		self.list = objlist
+class Group:
+	def __init__(self, gid, name):
+		self.gid = gid
+		self.name = name
+
+class Post: 
+	def __init__(self, pid, subject, body, userid):
+		self.pid = pid
+		self.subject = subject
+		self.body = body
+		self.userid = userid
+		self.time = self.getTimeStamp()
+
+	def getTimeStamp():
+		return 0.1
+
+#This is for receiving an array over socket, required for post[subject, body]
+def isPickle(s):
+	cmdList = s.split()
+	print(cmdList[0])
+	if(cmdList[0] == b"ALLGROUPS"):
+		return 1
+	else: return 0
 
 def nextN():
 	global startRange
@@ -135,6 +166,7 @@ def handleLogin(username):
 
         name = username
         connectionStatus = 1
+        _thread.start_new_thread( acceptFunc, ("AcceptThread",2,))
 
         # Check to see if this is a returning user. If not, add a new user to the users.json file
 
@@ -455,9 +487,20 @@ def runTests():
 
 	#removePostCount("test2")
 
+def acceptFunc(threadName, val):
+	while True:
 
+		t = clientSocket.recv(1024)
+		if(t!=""):
+
+			p  = pickle.loads(t)
+			print("PROTOCOL: ", p.protocol)
+			for var in p.list:
+				print("P: ",var.name)
+			t = ""
 
 #Program loop
+
 while True:
     if sys.version_info >= (3,0):
         readInput = input('Enter command: ')
