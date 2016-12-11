@@ -48,8 +48,6 @@ class Post:
 		self.userid = userid
 		self.time = self.getTimeStamp()
 
-	
-
 def nextN():
 	global startRange
 	global endRange
@@ -62,6 +60,9 @@ def sendNextN(protocol):
 	nextN()
 	message = protocol + " " + str(startRange) + " " + str(endRange)
 	sendEncoded(clientSocket, message)
+
+def postNextN():
+	nextN()
 
 def subNextN():
 	nextN()
@@ -177,7 +178,11 @@ def handleServerInput(protocol, list):
 
 	if(protocol=="READGROUP"):
 		postList = list
-		print(postList)
+
+		for post in postList:
+			print("SUBJECT: ", post.subject)
+			print("TIME: ", post.time)
+			print("BODY: ", post.body)
 
 def displayAllGroups():
 	count = 0
@@ -412,7 +417,7 @@ def handleReadGroup(cmdList):
 
 	currentCmd = "READGROUP"
 	currentGroup = cmdList[1]
-	message = currentCmd + " " + cmdList[1] + " " + str(startRange) + " " + str(endRange)
+	message = currentCmd + " " + cmdList[1]
 	sendEncoded(clientSocket, message)
 
 #Handle READGROUP sub Commands
