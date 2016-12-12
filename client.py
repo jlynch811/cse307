@@ -22,7 +22,7 @@ name = ""
 uid = 0
 subPath = r'Subs/'
 postCountPath = r'SubPosts/'
-readPostPath = r'ReadPosts/'
+readPostsPath = r'ReadPosts/'
 currentDisplay = []
 currentGroup = ""
 postList = []
@@ -48,6 +48,9 @@ class Post:
 		self.body = body
 		self.userid = userid
 		self.time = self.getTimeStamp()
+
+def byIsRead_key(post):
+	return isPostRead(post.subject)
 
 def nextN():
 	global startRange
@@ -215,12 +218,15 @@ def displayPosts():
 	count = 0
 
 	for post in postList:
-		if(c>=startRange and c<=endRange):
-			print(str(c+1) + ". " + str(post.time) + " " + post.subject)
-			count = count+1
-			c = c+1
+		if(count>=startRange and count<=endRange):
+			print(str(count+1) + ". " + displayPostRead(post.subject) + " " + str(post.time) + " " + post.subject)
+		count = count+1
+		c = c+1
 
 def sortPosts():
+	global postList
+
+	postList = sorted(postList, key=byIsRead_key)
 	print("TEST")
 
 
@@ -442,6 +448,7 @@ def handleReadGroup(cmdList):
 
 	currentCmd = "READGROUP"
 	currentGroup = cmdList[1]
+	resetNValue(nValue)
 	message = currentCmd + " " + cmdList[1]
 	sendEncoded(clientSocket, message)
 
@@ -464,20 +471,30 @@ def handleReadGroupSubCommand(cmdList):
 		#Single Value. Just send
 		if(len(rangeList)==1):
 			message = "MARKREAD " + str(rangeList[0])
+			markPostRead(int(rangeList[0])-1)
+			sortPosts()
+			resetNValue(nValue)
+			displayPosts()
+			return
 
 		#Check format of rangelist and [0] < [1]
 		elif(len(rangeList)==2 and int(rangeList[0]) < int(rangeList[1])):
 			message = "MARKRANGEREAD " + str(rangeList[0]) + " " + str(rangeList[1])
+			markPostRangeRead(int(rangeList[0])-1, int(rangeList[1]))
+			sortPosts()
+			resetNValue(nValue)
+			displayPosts()
+			return
 
 		else:
 			print("Format Error On r Command")
 			return
-		sendEncoded(clientSocket, message)
 
 	#List Next N Posts Command
 	if(cmdList[0] == "n" and len(cmdList) == 1):
 
-		sendNextN("READGROUP " + currentGroup)
+		postNextN()
+		displayPosts()
 		return
 
 	#Post to Group Command
@@ -598,7 +615,7 @@ def initSubFile():
 	countFile = open(fileName, 'a+')
 	countFile.close()
 
-	fileName = readPostPath + name + "posts.txt"
+	fileName = readPostsPath + name + "posts.txt"
 	postsFile = open(fileName, 'a+')
 	postsFile.close()
 
@@ -684,6 +701,42 @@ def removeLine(fileName, lineNo):
 	    count = count + 1
 	f.truncate()
 	f.close()
+
+def markPostRead(postNum):
+	global postList
+
+	post = postList[postNum].subject
+	if(isPostRead(post)):
+		return
+
+	fileName = readPostsPath + name+"posts.txt"
+	postsFile = open(fileName, 'a+')
+
+	postsFile.write(post+"\n")
+	postsFile.close()
+
+def markPostRangeRead(start, end):
+
+	for i in range(start, end):
+		markPostRead(i)
+
+def isPostRead(postName):
+	initSubFile()
+
+	fileName = readPostsPath + name + "posts.txt"
+	with open(fileName, 'r+b') as postsFile:
+
+		for line in postsFile:
+			if(line==postName.encode() +b'\r\n'):
+				return 1
+			elif(line==postName.encode()):
+				return 1
+	return 0
+
+def displayPostRead(postName):
+	if(isPostRead(postName)):
+		return " "
+	return "N"
 
 
 def runTests():
