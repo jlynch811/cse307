@@ -28,6 +28,9 @@ def saveDiscussionGroupsAndPosts(groups, posts):
     for post in posts:
         addPost(post.gname, post.subject, post.userid, post.time, post.body)
         
+def appendPost(post):
+    addPost(post.gname, post.subject, post.userid, post.time, post.body)
+        
     
         
 def loadDiscussionGroups():
