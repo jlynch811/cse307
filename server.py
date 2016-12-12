@@ -135,9 +135,11 @@ def handlePostCommand(package, currsocket, allsockets, serversocket):
 		currGroup = package.list.gname
 		toSend = getGroupPosts(currGroup)
 
+		print("Current Group: "+currGroup+" | Number of Posts: "+toSend)
+
 		for s in allsockets:
 			if not(s is serversocket):
-				pickleSendPost(s, "NEWPOST", len(toSend), package.list.gname)
+				pickleSendPost(s, "NEWPOST", len(toSend), currGroup)
 
 	
 
