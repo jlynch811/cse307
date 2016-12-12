@@ -43,12 +43,13 @@ class Group:
 class Post: 
 	def getTimeStamp(self):
 		return 0.1
-	def __init__(self, pid, subject, body, userid):
+	def __init__(self, pid, subject, body, userid, gname):
 		self.pid = pid
 		self.subject = subject
 		self.body = body
 		self.userid = userid
 		self.time = self.getTimeStamp()
+		self.gname = gname
 
 def byIsRead_key(post):
 	return isPostRead(post.subject)
@@ -184,12 +185,6 @@ def handleServerInput(protocol, list):
 
 	if(protocol=="READGROUP"):
 		postList = list
-
-		for post in postList:
-
-			print("SUBJECT: ", post.subject)
-			print("TIME: ", post.time)
-			print("BODY: ", post.body)
 
 		sortPosts()
 		displayPosts()
@@ -529,22 +524,27 @@ def handleReadGroupSubCommand(cmdList):
 				message = "ID " + cmdList[0]
 				print("ID: ", cmdList[0])
 
-				executeId(cmdList[0])
+				executeId(int(cmdList[0]))
 				sendEncoded(clientSocket, message)
 		except:
 			print("Unrecognized Command, Incorrect Format, Or Command Is Not Available At This Time")
 			return
 
-def executeId(id):
+def executeId(idd):
 	global currentPost
 	global postList
 
-	currentPost = postList[id]
+	print("EXE")
+	currentPost = postList[idd]
 
-	print(currentPost.content)
+	print("CONTENT:",currentPost.content)
+	print("l:",postList[idd])
 
 def sendPost(subject, content):
-	p = Post(None, subject, content, name)
+	global currentGroup
+	global name
+	
+	p = Post(None, subject, content, name, currentGroup)
 	package = Package("MAKEPOST", p, currentGroup)
 	pickledPost = pickle.dumps(package)
 	clientSocket.send(pickledPost)
