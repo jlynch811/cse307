@@ -11,12 +11,15 @@ import os
 
 serverName = 'localhost'
 serverPort = 5898
-debug=1
+debug=0
 connectionStatus = 0
 currentCmd = ""
 nValue = 5
 startRange = 0
 endRange = 4
+
+postStart = 0
+postEnd = 4
 clientSocket = socket(AF_INET, SOCK_STREAM)
 name = ""
 uid = 0
@@ -27,6 +30,7 @@ currentDisplay = []
 currentGroup = ""
 currentPost = None
 postList = []
+idFlag = 0
 
 #Structures
 
@@ -68,7 +72,20 @@ def sendNextN(protocol):
 	sendEncoded(clientSocket, message)
 
 def postNextN():
-	nextN()
+	global postStart
+	global postEnd
+	global nValue
+
+	postStart = postStart + nValue
+	postEnd = postEnd + nValue
+
+def resetPostN():
+	global postStart
+	global postEnd
+	global nValue
+
+	postStart = 0
+	postEnd = nValue-1
 
 def subNextN():
 	nextN()
@@ -88,6 +105,8 @@ def handleInput(i):
 	global nValue
 
 	cmdList = i.split()
+	if cmdList == []:
+		return
 
 	#Check if we're in a command "mode." These return immediately after executing
 	#if(connectionStatus ==1):
@@ -112,9 +131,11 @@ def handleInput(i):
 		if(debug): print("Calling Login", cmdList[1])
 
 		handleLogin(cmdList[1])
+		return
 
 	elif(cmdList[0] == "help"):
 		handleHelp()
+		return
 
 	#Disallow other commands if not logged in.
 	elif(connectionStatus==0):
@@ -125,6 +146,7 @@ def handleInput(i):
 	elif(cmdList[0] == "logout"):
 		if(debug): print("Calling Logout")
 		handleLogout()
+		return
 
 	#Exit Command
 	elif(cmdList[0] == "exit"):
@@ -139,6 +161,7 @@ def handleInput(i):
 			if(debug): print("nValue set: ", nValue)
 
 		handleAllGroups(cmdList)
+		return
 
 	#sg Command
 	elif(cmdList[0] == "sg" and (len(cmdList)==1 or len(cmdList)==2)):
@@ -148,15 +171,20 @@ def handleInput(i):
 			if(debug): print("nValue set: ", nValue)
 
 		handleSubscribedGroups(cmdList)
+		return
 
 	#rg Command
 	elif(cmdList[0] == "rg" and (len(cmdList)==2 or len(cmdList)==3)):
 		#Set the optional nValue
-		if(len(cmdList)==3):
-			resetNValue(int(cmdList[2]))
-			if(debug): print("nValue set: ", nValue)
+		if(amSubscribed(cmdList[1])):
+			if(len(cmdList)==3):
+				resetNValue(int(cmdList[2]))
+				if(debug): print("nValue set: ", nValue)
 
-		handleReadGroup(cmdList)
+			handleReadGroup(cmdList)
+			return
+		print("Not subscribed to group.")
+		return
 
 	else:
 		print("Unrecognized Command, Incorrect Format, Or Command Is Not Available At This Time")
@@ -170,7 +198,7 @@ def recvFunc(threadName, val):
 		protocol = p.protocol
 		list = p.objlist
 		gname = p.name
-		print(list)
+		#print(list)
 		handleServerInput(protocol, list, gname)
 
 def handleServerInput(protocol, list, gname):
@@ -191,15 +219,27 @@ def handleServerInput(protocol, list, gname):
 		displayPosts()
 
 	if(protocol=="NEWPOST"):
-		print("POSTCOUNT: ", list)
-		print("GROUP: ", gname)
+		checkAlert(gname, list)
+		#print("POSTCOUNT: ", list)
+		#print("GROUP: ", gname)
+
+	if(protocol=="LOGOUT"):
+		logout = clientSocket.recv(1024)
+
+		clientSocket.close()
+		connectionStatus = 0
 
 
+def checkAlert(gname, pCount):
+	if(amSubscribed==0):
+		return
+	alert = "\nALERT: NEW POST IN SUBSCRIBED GROUP - " + gname +"\n"
+	print(alert)
 
 def displayAllGroups():
 	count = 0
 	for group in currentDisplay:
-		print(str(count+1)+ ". ("+amSubscribedPrint(group.name)+") "+ group.name)
+		print(str(count+1)+ ". \t("+amSubscribedPrint(group.name)+")\t "+ group.name)
 		count+=1
 def displaySubGroups():
 	global currentDisplay
@@ -207,7 +247,7 @@ def displaySubGroups():
 	for groupname in currentDisplay:
 		pCount = getPostCount(groupname)
 		c = int(pCount)
-		newS =  str(count+1)+ ".\t" + str(c)+"\t"+ groupname
+		newS =  str(count+1)+ ".\t" + str(c)+"\t"+ groupname.rstrip()
 		print(newS)
 		count+=1
 
@@ -222,7 +262,7 @@ def displayPosts():
 
 	for post in postList:
 		if(count>=startRange and count<=endRange):
-			print(str(count+1) + ". " + displayPostRead(post.subject) + " " + str(post.time) + " " + post.subject)
+			print(str(count+1) + ".\t " + displayPostRead(post.subject) + "\t " + str(post.time) + "\t " + post.subject)
 		count = count+1
 		c = c+1
 
@@ -230,7 +270,7 @@ def sortPosts():
 	global postList
 
 	postList = sorted(postList, key=byIsRead_key)
-	print("TEST")
+	#print("TEST")
 
 
 def stripEndTags(s):
@@ -241,6 +281,11 @@ def stripEndTags(s):
 	if(s.endswith('\r')):
 		s = s[:2]
 
+	return s
+
+def stripN(s):
+	if(s.endswith('\n')):
+		s = s[:2]
 	return s
 
 def handleLogin(username):
@@ -325,16 +370,23 @@ def handleAllGroupsSubCommand(cmdList):
 	if(cmdList[0] == "s" and len(cmdList)<= nValue+1):
 		message = "SUB"
 		sCommand(cmdList)
+		displayAllGroups()
+		return
 
 	elif(cmdList[0] == "u" and len(cmdList)<= nValue+1):
 		message = "UNSUB"
 		uCommand(cmdList)
+		displayAllGroups()
+		return
 
 	elif(cmdList[0] == "n"):
 		sendNextN("ALLGROUPS")
+		return
 
 	elif(cmdList[0] == "q"):
 		currentCmd = ""
+		print("Quitting All Groups Sub Menu")
+		return
 
 	else:
 		print("Unrecognized Command, Incorrect Format, Or Command Is Not Available At This Time")
@@ -347,11 +399,11 @@ def handleSubscribedGroups(cmdList):
     global currentDisplay
 
     currentCmd = "SUBGROUPS"
-    print("RANGE: ", startRange, endRange)
+    #print("RANGE: ", startRange, endRange)
     subList = getSubGroups(startRange, endRange)
     currentDisplay = subList
-    print(subList)
-    print(currentDisplay)
+    #print(subList)
+   	#print(currentDisplay)
     displaySubGroups()
 
 
@@ -383,6 +435,7 @@ def getSubGroups(start, end):
 def handleSubscribedGroupsSubCommand(cmdList):
 	global currentCmd
 	global nValue
+	global currentDisplay
 
 	if(debug): print("Sub Groups Sub Command")
 
@@ -392,6 +445,10 @@ def handleSubscribedGroupsSubCommand(cmdList):
 	if(cmdList[0] == "u" and len(cmdList)<= nValue+1):
 		message = "UNSUB"
 		uCommandSub(cmdList)
+
+		subList = getSubGroups(startRange, endRange)
+		currentDisplay = subList
+		displaySubGroups()
 		return
 
 	elif(cmdList[0] == "n"):
@@ -400,14 +457,14 @@ def handleSubscribedGroupsSubCommand(cmdList):
 
 	elif(cmdList[0] == "q"):
 		currentCmd = ""
-		print("Exiting sub commands")
+		print("Quitting Subscribed Groups Sub Menu")
 		return
 
 	print("Unrecognized Command, Incorrect Format, Or Command Is Not Available At This Time")
 
 def uCommand(cmdList):
 	for val in cmdList[1:]:
-		print("VAL: ", val)
+		#print("VAL: ", val)
 		try:
 			val = int(val)
 			val = val - 1
@@ -420,14 +477,14 @@ def uCommand(cmdList):
 
 def uCommandSub(cmdList):
 	for val in cmdList[1:]:
-		print("VAL: ", val)
+		#print("VAL: ", val)
 		try:
 			val = int(val)
 			val = val - 1
 		except:
 			print("Incorrect Format")
 			return
-		print("CUR DISPLAY: ", currentDisplay[val])
+		#print("CUR DISPLAY: ", currentDisplay[val])
 		unsubscribeToGroup(currentDisplay[val])
 
 def sCommand(cmdList):
@@ -452,6 +509,7 @@ def handleReadGroup(cmdList):
 	currentCmd = "READGROUP"
 	currentGroup = cmdList[1]
 	resetNValue(nValue)
+	resetPostN()
 	message = currentCmd + " " + cmdList[1]
 	sendEncoded(clientSocket, message)
 
@@ -460,6 +518,7 @@ def handleReadGroupSubCommand(cmdList):
 	global currentCmd
 	global nValue
 	global currentGroup
+	global idFlag
 
 	if(debug): print("Read Groups Sub Command")
 
@@ -496,7 +555,11 @@ def handleReadGroupSubCommand(cmdList):
 	#List Next N Posts Command
 	if(cmdList[0] == "n" and len(cmdList) == 1):
 
-		postNextN()
+		if(idFlag==1):
+			displayPostFile()
+			postNextN()
+			return
+		nextN()
 		displayPosts()
 		return
 
@@ -512,26 +575,36 @@ def handleReadGroupSubCommand(cmdList):
 			postBody = postBody + currentStr+"\n"
 			currentStr = input("")
 
-		print("SUBJECT: \n", subjectStr)
-		print("POST BODY: \n", postBody)
+		#print("SUBJECT: \n", subjectStr)
+		#print("POST BODY: \n", postBody)
 
 		postList = [subjectStr, postBody]
 		sendPost(subjectStr, postBody)
+		return
 
 	#Quit RG Command
 	if(cmdList[0] == "q"):
+
+		if(idFlag==1):
+			idFlag = 0
+			resetPostN()
+			displayPosts()
+			return
+
 		currentCmd = ""
 		currentGroup = ""
 		postList = []
+		print("Quitting Read Group Sub Menu")
+		return
 
 	#[id] command
 	else:
 		try:
 			if(int(cmdList[0]) >=1 and int(cmdList[0]) <= nValue):
 				message = "ID " + cmdList[0]
-				print("ID: ", cmdList[0])
 
 				executeId(int(cmdList[0]))
+				idFlag = 1
 
 			return
 		except:
@@ -545,15 +618,23 @@ def executeId(idd):
 	currentPost = postList[idd]
 
 	writePostToFile()
+	print("\n")
+	print("Group: " + currentPost.gname)
+	print("Subject: " + currentPost.subject)
+	print("Author: " + currentPost.userid)
+	print("Date: " + str(currentPost.time))
+	print("\n")
 
-	print("CONTENT:",currentPost.body)
+
+	#print("CONTENT:",currentPost.body)
 
 def writePostToFile():
 	global currentPost
 
-	print("WRITING TO FILE")
 	fileName = "cur.txt"
 	f = open(fileName,"a+")
+	f.seek(0)
+	f.truncate()
 	f.seek(0)
 	f.write(currentPost.body)
 	f.truncate()
@@ -580,10 +661,10 @@ def handleLogout():
 
 	clientSocket.shutdown(SHUT_WR)
 	#Wait for confirmation to close
-	logout = clientSocket.recv(1024)
+	#logout = clientSocket.recv(1024)
 
-	clientSocket.close()
-	connectionStatus = 0
+	#clientSocket.close()
+	#connectionStatus = 0
 
 
 def sendEncoded(socket, message):
@@ -610,8 +691,8 @@ def unsubscribeToGroup(gname):
 	d = f.readlines()
 	f.seek(0)
 	for i in d:
-		print("i: ", i.encode())
-		print("gname: ", gname.encode())
+		#print("i: ", i.encode())
+		#print("gname: ", gname.encode())
 		if (i != gname +"\n" and i!=gname):
 			f.write(i)
 	f.truncate()
@@ -667,7 +748,7 @@ def initDirs():
 
 
 def initPostCount(gname):
-	print("InitPostCount")
+	if(debug): print("InitPostCount")
 	fileName = postCountPath + name + "count.txt"
 
 	countFile = open(fileName, 'a+')
@@ -771,6 +852,25 @@ def displayPostRead(postName):
 		return " "
 	return "N"
 
+def displayPostFile():
+	global nValue
+	global postStart
+	global postEnd
+
+	pr = ""
+	fileName = "cur.txt"
+	f = open(fileName,"r+")
+	d = f.readlines()
+	count = 0
+	for i in d:
+		if(count>=postStart and count<=postEnd):
+			pr = pr + i
+		count+=1
+
+	f.close()
+	print(pr)
+
+
 
 def runTests():
 	print("RUNNING TESTS: ")
@@ -787,8 +887,8 @@ def runTests():
 initDirs()
 while True:
     if sys.version_info >= (3,0):
-        readInput = input('Enter command: ')
+        readInput = input('Enter command: \n')
     else:
-        readInput = raw_input('Enter command: ')
+        readInput = raw_input('Enter command: \n')
         
     handleInput(readInput)
