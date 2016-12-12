@@ -22,6 +22,7 @@ name = ""
 uid = 0
 subPath = r'Subs/'
 postCountPath = r'SubPosts/'
+readPostPath = r'ReadPosts/'
 currentDisplay = []
 currentGroup = ""
 postList = []
@@ -159,10 +160,11 @@ def handleInput(i):
 def recvFunc(threadName, val):
 	while True:
 
-		t = clientSocket.recv(1024)
+		t = clientSocket.recv(10000)
 		p  = pickle.loads(t)
 		protocol = p.protocol
 		list = p.list
+		print(list)
 		handleServerInput(protocol, list)
 
 def handleServerInput(protocol, list):
@@ -180,9 +182,13 @@ def handleServerInput(protocol, list):
 		postList = list
 
 		for post in postList:
+
 			print("SUBJECT: ", post.subject)
 			print("TIME: ", post.time)
 			print("BODY: ", post.body)
+
+		sortPosts()
+		displayPosts()
 
 def displayAllGroups():
 	count = 0
@@ -198,6 +204,25 @@ def displaySubGroups():
 		newS =  str(count+1)+ ".\t" + str(c)+"\t"+ groupname
 		print(newS)
 		count+=1
+
+def displayPosts():
+	global postList
+	global nValue
+	global startRange
+	global endRange
+
+	c= startRange
+	count = 0
+
+	for post in postList:
+		if(c>=startRange and c<=endRange):
+			print(str(c+1) + ". " + str(post.time) + " " + post.subject)
+			count = count+1
+			c = c+1
+
+def sortPosts():
+	print("TEST")
+
 
 def stripEndTags(s):
 	if(s.endswith('\r')):
@@ -568,9 +593,14 @@ def initSubFile():
 	fileName = subPath + name + "sub.txt"
 	subFile = open(fileName, 'a+')
 	subFile.close()
+
 	fileName = postCountPath + name + "count.txt"
 	countFile = open(fileName, 'a+')
 	countFile.close()
+
+	fileName = readPostPath + name + "posts.txt"
+	postsFile = open(fileName, 'a+')
+	postsFile.close()
 
 def initDirs():
 	directory = "Subs"
@@ -578,6 +608,10 @@ def initDirs():
 		os.makedirs(directory)
 
 	directory = "SubPosts"
+	if not os.path.exists(directory):
+		os.makedirs(directory)
+
+	directory = "ReadPosts"
 	if not os.path.exists(directory):
 		os.makedirs(directory)
 

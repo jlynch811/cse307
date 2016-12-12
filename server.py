@@ -105,7 +105,7 @@ def handleRG(info, currsocket):
 	toSend = []
 
 	for post in postList:
-		if(post.name == gname):
+		if(post.gname == gname):
 			toSend.append(post)
 
 	pickleSend(currsocket, "READGROUP", toSend)
