@@ -48,7 +48,7 @@ def loadPosts(filePath):
 	pp = []
 	for j in range(0, 10):
 		for i in range(0,10):
-			pp.append(Post(j*10 + i, str(i)+"th subject", "hello my name is slim shady", "person "+str(i), "Somesubject"+str(j)))
+			pp.append(Post(j*10 + i, str(i)+"th subject", "hello my name is slim shady\nhellooksokspkpokpkoasdasdasd\nthe greatness of valhalla\ni like eggs and bacon and hamburgers for breakfast\nhello world goodbye world hello world\n gooooodddddddd byyeeeee cruel world\nmicrophones r like headphones without the ability to listen", "person "+str(i), "Somesubject"+str(j)))
 
 	return pp
 
