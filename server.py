@@ -176,7 +176,8 @@ while socketList:
 			#CHECK FOR EOF
 			if(not message):
 				print("RECEIVED EOF")
-				sendEncoded(s, "LOGOUT")	
+				#sendEncoded(s, "LOGOUT")	
+				pickleSend(s, "LOGOUT", None)
 				s.close()
 				socketList.remove(s)
 
