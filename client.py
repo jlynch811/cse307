@@ -31,6 +31,7 @@ currentGroup = ""
 currentPost = None
 postList = []
 idFlag = 0
+threadExit = 0
 
 #Structures
 
@@ -191,6 +192,8 @@ def handleInput(i):
 
 #Multithreading to support stdin and server input
 def recvFunc(threadName, val):
+	global threadExit
+
 	while True:
 
 		t = clientSocket.recv(10000)
@@ -200,10 +203,15 @@ def recvFunc(threadName, val):
 		gname = p.name
 		#print(list)
 		handleServerInput(protocol, list, gname)
+		if(threadExit==1):
+			threadExit=0
+			return
 
 def handleServerInput(protocol, list, gname):
 	global currentDisplay
 	global postList
+	global threadExit
+	global connectionStatus
 
 	if(debug): print("PROTOCOL: ", protocol)
 
@@ -228,6 +236,7 @@ def handleServerInput(protocol, list, gname):
 
 		clientSocket.close()
 		connectionStatus = 0
+		threadExit = 1
 
 
 def checkAlert(gname, pCount):
@@ -299,14 +308,15 @@ def handleLogin(username):
         clientSocket.connect((serverName,serverPort))
 
         loginRequest = "LOGIN " + str(username) 
-        print("Waiting to send...")
+       # print("Waiting to send...")
         sendEncoded(clientSocket, loginRequest)
-        print("Sent...")
+        #print("Sent...")
         modifiedSentence = clientSocket.recv(1024)
-        print ('From Server:', modifiedSentence)
+        #print ('From Server:', modifiedSentence)
 
         name = username
         connectionStatus = 1
+        print("Logged in as", name+".")
         _thread.start_new_thread(recvFunc, ("recvThread",2,))
 
         # Check to see if this is a returning user. If not, add a new user to the users.json file
@@ -660,6 +670,7 @@ def handleLogout():
 	if(debug): print("SENT COMMAND: ", message)
 
 	clientSocket.shutdown(SHUT_WR)
+	print("Logged Out.")
 	#Wait for confirmation to close
 	#logout = clientSocket.recv(1024)
 
