@@ -66,6 +66,16 @@ def sendEncoded(socket, message):
 	print("Sending Message: ", message)
 	socket.send(str.encode(message))
 
+def getGroupPosts(gname):
+	toSend = []
+
+	for post in postList:
+		if(post.gname == gname):
+			toSend.append(post)
+
+	return toSend
+
+
 #This is for receiving an array over socket, required for post[subject, body]
 def isPickle(s):
 	cmdList = s.split()
@@ -122,9 +132,12 @@ def handlePostCommand(package, currsocket, allsockets, serversocket):
 		postList.append(package.list)
 		pickleSend(currsocket, "MAKEPOST", "SUCCESS")
 
+		currGroup = pack.list.gname
+		toSend = getGroupPosts(currGroup)
+
 		for s in allsockets:
 			if not(s is serversocket):
-				pickleSendPost(s, "NEWPOST", len(postList), package.list.gname)
+				pickleSendPost(s, "NEWPOST", len(toSend), package.list.gname)
 
 	
 
