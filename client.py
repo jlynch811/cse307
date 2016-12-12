@@ -544,7 +544,22 @@ def executeId(idd):
 
 	currentPost = postList[idd]
 
+	writePostToFile()
+
 	print("CONTENT:",currentPost.body)
+
+def writePostToFile():
+	global currentPost
+
+	print("WRITING TO FILE")
+	fileName = "cur.txt"
+	f = open(fileName,"a+")
+	f.seek(0)
+	f.write(currentPost.body)
+	f.truncate()
+	f.close()
+
+
 
 def sendPost(subject, content):
 	global currentGroup
