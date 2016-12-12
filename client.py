@@ -169,10 +169,11 @@ def recvFunc(threadName, val):
 		p  = pickle.loads(t)
 		protocol = p.protocol
 		list = p.list
+		gname = p.name
 		print(list)
-		handleServerInput(protocol, list)
+		handleServerInput(protocol, list, gname)
 
-def handleServerInput(protocol, list):
+def handleServerInput(protocol, list, gname):
 	global currentDisplay
 	global postList
 
@@ -188,6 +189,12 @@ def handleServerInput(protocol, list):
 
 		sortPosts()
 		displayPosts()
+
+	if(protocol=="NEWPOST"):
+		print("POSTCOUNT: ", list)
+		print("GROUP: ", gname)
+
+
 
 def displayAllGroups():
 	count = 0
@@ -543,7 +550,7 @@ def executeId(idd):
 def sendPost(subject, content):
 	global currentGroup
 	global name
-	
+
 	p = Post(None, subject, content, name, currentGroup)
 	package = Package("MAKEPOST", p, currentGroup)
 	pickledPost = pickle.dumps(package)
