@@ -132,7 +132,7 @@ def handlePostCommand(package, currsocket, allsockets, serversocket):
 		postList.append(package.list)
 		pickleSend(currsocket, "MAKEPOST", "SUCCESS")
 
-		currGroup = pack.list.gname
+		currGroup = package.list.gname
 		toSend = getGroupPosts(currGroup)
 
 		for s in allsockets:
