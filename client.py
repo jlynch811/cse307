@@ -25,6 +25,7 @@ postCountPath = r'SubPosts/'
 readPostsPath = r'ReadPosts/'
 currentDisplay = []
 currentGroup = ""
+currentPost = ""
 postList = []
 
 #Structures
@@ -527,15 +528,25 @@ def handleReadGroupSubCommand(cmdList):
 			if(int(cmdList[0]) >=1 and int(cmdList[0]) <= nValue):
 				message = "ID " + cmdList[0]
 				print("ID: ", cmdList[0])
+
+				executeId(cmdList[0])
 				sendEncoded(clientSocket, message)
 		except:
 			print("Unrecognized Command, Incorrect Format, Or Command Is Not Available At This Time")
 			return
 
+def executeId(id):
+	global currentPost
+	global postList
+
+	currentPost = postList[id]
+
+	print(currentPost.content)
+
 def sendPost(subject, content):
-	p = [Post(None, subject, content, name)]
+	p = Post(None, subject, content, name)
 	package = Package("MAKEPOST", p, currentGroup)
-	pickledPost = pickle.dumps(p)
+	pickledPost = pickle.dumps(package)
 	clientSocket.send(pickledPost)
 
 
