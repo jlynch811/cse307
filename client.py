@@ -25,7 +25,7 @@ postCountPath = r'SubPosts/'
 readPostsPath = r'ReadPosts/'
 currentDisplay = []
 currentGroup = ""
-currentPost = ""
+currentPost = None
 postList = []
 
 #Structures
@@ -532,7 +532,8 @@ def handleReadGroupSubCommand(cmdList):
 				print("ID: ", cmdList[0])
 
 				executeId(int(cmdList[0]))
-				sendEncoded(clientSocket, message)
+
+			return
 		except:
 			print("Unrecognized Command, Incorrect Format, Or Command Is Not Available At This Time")
 			return
@@ -541,11 +542,9 @@ def executeId(idd):
 	global currentPost
 	global postList
 
-	print("EXE", idd)
 	currentPost = postList[idd]
 
-	print("CONTENT:",currentPost.content)
-	print("l:",postList[idd])
+	print("CONTENT:",currentPost.body)
 
 def sendPost(subject, content):
 	global currentGroup
