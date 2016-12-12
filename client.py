@@ -526,6 +526,7 @@ def handleReadGroupSubCommand(cmdList):
 		try:
 			if(int(cmdList[0]) >=1 and int(cmdList[0]) <= nValue):
 				message = "ID " + cmdList[0]
+				print("ID: ", cmdList[0])
 				sendEncoded(clientSocket, message)
 		except:
 			print("Unrecognized Command, Incorrect Format, Or Command Is Not Available At This Time")
