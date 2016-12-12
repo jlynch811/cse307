@@ -33,7 +33,7 @@ postList = []
 class Package:
 	def __init__(self, protocol, objlist, name):
 		self.protocol = protocol
-		self.list = objlist
+		self.objlist = objlist
 		self.name = name
 class Group:
 	def __init__(self, gid, name):
@@ -168,7 +168,7 @@ def recvFunc(threadName, val):
 		t = clientSocket.recv(10000)
 		p  = pickle.loads(t)
 		protocol = p.protocol
-		list = p.list
+		list = p.objlist
 		gname = p.name
 		print(list)
 		handleServerInput(protocol, list, gname)
@@ -541,7 +541,7 @@ def executeId(idd):
 	global currentPost
 	global postList
 
-	print("EXE")
+	print("EXE", idd)
 	currentPost = postList[idd]
 
 	print("CONTENT:",currentPost.content)
