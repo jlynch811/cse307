@@ -80,6 +80,12 @@ def pickleSend(currsocket, prefix, obj):
 	pickledObj = pickle.dumps(p)
 	currsocket.send(pickledObj)
 
+def pickleSendPost(currsocket, prefix, obj, name):
+	#Pickle is used to send the array over the socket.
+	p = Package(prefix, obj, name)
+	pickledObj = pickle.dumps(p)
+	currsocket.send(pickledObj)
+
 def handleUserCommand(command, currsocket):
 	cmdList = command.split(None, 1)
 
@@ -111,8 +117,16 @@ def handleRG(info, currsocket):
 	pickleSend(currsocket, "READGROUP", toSend)
 
 
-def handlePostCommand(post, currsocket):
-	print("test")
+def handlePostCommand(package, currsocket, allsockets, serversocket):
+	if(package.protocol == "MAKEPOST"):
+		postList.append(package.list)
+		pickleSend(currsocket, "MAKEPOST", "SUCCESS")
+
+		for s in allsockets:
+			if not(s is serversocket):
+				pickleSendPost(s, "NEWPOST", len(postList), package.list.gname)
+
+	
 
 
 
@@ -155,7 +169,7 @@ while socketList:
 				#s.send(message)
 				try: 
 					message = pickle.loads(message)
-					handlePostCommand(message, s)
+					handlePostCommand(message, s, readSockets, serverSocket)
 				except: 
 					handleUserCommand(message.decode(), s)
 
