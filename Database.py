@@ -182,18 +182,18 @@ def addDiscussionGroup(dicussionGroupName):
     
     data = {}
     data['posts'] = []
-    
     with open(newFilePath, 'w') as f:    
         json.dump(data,f)
     f.close()
     
 # Add a new post to a specified discussion group.
-def addPost(discussionGroupName, postSubject, postAuthor, postContent):
+def addPost(discussionGroupName, postSubject, postAuthor, postTimeStamp, postContent):
     # Make sure to change this to non hard coded timezone unless it doesn't matter
+    # 'timeStamp' : str('{:%a, %b %d %X %ZEST %Y}'.format(datetime.datetime.now()))
     newPost = {
         'subject' : postSubject,
         'author' : postAuthor,
-        'timeStamp' : str('{:%a, %b %d %X %ZEST %Y}'.format(datetime.datetime.now())),
+        'timeStamp' : postTimeStamp,
         'post' : postContent
     }
     
@@ -284,3 +284,6 @@ def getNumPosts(discussionGroupName):
         return -1
     
     return len(data['posts'])
+
+    
+    
