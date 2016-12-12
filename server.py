@@ -11,7 +11,7 @@ import pickle
 class Package:
 	def __init__(self, protocol, objlist, name):
 		self.protocol = protocol
-		self.list = objlist
+		self.objlist = objlist
 		self.name = name
 
 class Group:
@@ -129,13 +129,13 @@ def handleRG(info, currsocket):
 
 def handlePostCommand(package, currsocket, allsockets, serversocket):
 	if(package.protocol == "MAKEPOST"):
-		postList.append(package.list)
+		postList.append(package.objlist)
 		pickleSend(currsocket, "MAKEPOST", "SUCCESS")
 
-		currGroup = package.list.gname
+		currGroup = package.objlist.gname
 		toSend = getGroupPosts(currGroup)
 
-		print("Current Group: "+currGroup+" | Number of Posts: "+toSend)
+		print("Current Group: "+str(currGroup)+" | Number of Posts: "+str(toSend))
 
 		for s in allsockets:
 			if not(s is serversocket):
