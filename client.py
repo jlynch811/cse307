@@ -249,6 +249,7 @@ def handleServerInput(protocol, list, gname):
 		#print("POSTCOUNT: ", list)
 		#print("GROUP: ", gname)
 
+	print("PROTOCOL: ", protocol)
 	if(protocol=="CONFIRMPOST"):
 		displayPosts()
 
