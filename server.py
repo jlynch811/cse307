@@ -171,6 +171,8 @@ def handlePostCommand(package, currsocket, allsockets, serversocket):
 				print("\n\ns: ", str(s) + "\n\n")
 				pickleSendPost(s, "NEWPOST", len(toSend), thePost)
 
+		pickleSend(currsocket, "CONFIRMPOST", None)
+
 #Main Program
 serverSocket.setblocking(0)
 serverSocket.bind(('',serverPort))
