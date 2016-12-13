@@ -160,6 +160,7 @@ def handlePostCommand(package, currsocket, allsockets, serversocket):
 
 		pickleSend(currsocket, "MAKEPOST", "SUCCESS")
 
+		thePost = package.objlist
 		currGroup = package.objlist.gname
 		toSend = getGroupPosts(currGroup)
 
@@ -168,7 +169,7 @@ def handlePostCommand(package, currsocket, allsockets, serversocket):
 		for s in allsockets:
 			if not(s is serversocket):
 				print("\n\ns: ", str(s) + "\n\n")
-				pickleSendPost(s, "NEWPOST", len(toSend), currGroup)
+				pickleSendPost(s, "NEWPOST", len(toSend), thePost)
 
 #Main Program
 serverSocket.setblocking(0)
@@ -211,7 +212,7 @@ while socketList:
 					#s.send(message)
 					try: 
 						message = pickle.loads(message)
-						handlePostCommand(message, s, readSockets, serverSocket)
+						handlePostCommand(message, s, socketList, serverSocket)
 					except: 
 						handleUserCommand(message.decode(), s)
 			except ConnectionResetError:
