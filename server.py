@@ -117,6 +117,9 @@ def handleUserCommand(command, currsocket):
 	elif(cmdList[0] == "READGROUP"):
 		handleRG(cmdList[1], currsocket)
 
+	elif(cmdList[0] == "POSTCOUNT"):
+		handlePostCount(cmdList[1], currsocket)
+
 
 def handleAG(info, currsocket):
 	infoList = info.split()
@@ -135,6 +138,18 @@ def handleRG(info, currsocket):
 
 	pickleSend(currsocket, "READGROUP", toSend)
 
+def handlePostCount(info, currsocket):
+	gname = infoList[0]
+
+	toSend = []
+	toSendCount = 0
+
+	for post in postList:
+		if(post.gname == gname):
+			toSendCount+=1
+
+	pickleSendPost(currsocket, "POSTCOUNT", toSendCount, gname)
+
 
 def handlePostCommand(package, currsocket, allsockets, serversocket):
 	if(package.protocol == "MAKEPOST"):
@@ -151,10 +166,6 @@ def handlePostCommand(package, currsocket, allsockets, serversocket):
 		for s in allsockets:
 			if not(s is serversocket):
 				pickleSendPost(s, "NEWPOST", len(toSend), currGroup)
-
-	
-
-
 
 #Main Program
 serverSocket.setblocking(0)
