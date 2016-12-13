@@ -32,6 +32,7 @@ currentPost = None
 postList = []
 idFlag = 0
 threadExit = 0
+defaultN = 5
 
 #Structures
 
@@ -46,8 +47,10 @@ class Group:
 		self.name = name
 
 class Post: 
+
 	def getTimeStamp(self):
 		return 0.1
+
 	def __init__(self, pid, subject, body, userid, gname):
 		self.pid = pid
 		self.subject = subject
@@ -58,6 +61,9 @@ class Post:
 
 def byIsRead_key(post):
 	return isPostRead(post.subject)
+
+def byTime_key(post):
+	return post.time
 
 def nextN():
 	global startRange
@@ -104,6 +110,7 @@ def resetNValue(n):
 def handleInput(i):
 	global currentCmd
 	global nValue
+	global defaultN
 
 	cmdList = i.split()
 	if cmdList == []:
@@ -160,6 +167,7 @@ def handleInput(i):
 		if(len(cmdList)==2):
 			resetNValue(int(cmdList[1]))
 			if(debug): print("nValue set: ", nValue)
+		else: resetNValue(defaultN)
 
 		handleAllGroups(cmdList)
 		return
@@ -170,7 +178,7 @@ def handleInput(i):
 		if(len(cmdList)==2):
 			resetNValue(int(cmdList[1]))
 			if(debug): print("nValue set: ", nValue)
-
+		else: resetNValue(defaultN)
 		handleSubscribedGroups(cmdList)
 		return
 
@@ -181,7 +189,7 @@ def handleInput(i):
 			if(len(cmdList)==3):
 				resetNValue(int(cmdList[2]))
 				if(debug): print("nValue set: ", nValue)
-
+			else: resetNValue(defaultN)
 			handleReadGroup(cmdList)
 			return
 		print("Not subscribed to group.")
@@ -246,7 +254,14 @@ def checkAlert(gname, pCount):
 	print(alert)
 
 def displayAllGroups():
+	global currentCmd
 	count = 0
+
+	if(currentDisplay==[]):
+		currentCmd = ""
+		print("Quitting All Groups Sub Menu")
+		return
+
 	for group in currentDisplay:
 		print(str(count+1)+ ". \t("+amSubscribedPrint(group.name)+")\t "+ group.name)
 		count+=1
@@ -278,6 +293,7 @@ def displayPosts():
 def sortPosts():
 	global postList
 
+	postList = sorted(postList, key=byTime_key)
 	postList = sorted(postList, key=byIsRead_key)
 	#print("TEST")
 
@@ -596,6 +612,7 @@ def handleReadGroupSubCommand(cmdList):
 	if(cmdList[0] == "q"):
 
 		if(idFlag==1):
+			markPostReadByName(currentPost)
 			idFlag = 0
 			resetPostN()
 			displayPosts()
@@ -613,7 +630,7 @@ def handleReadGroupSubCommand(cmdList):
 			if(int(cmdList[0]) >=1 and int(cmdList[0]) <= nValue):
 				message = "ID " + cmdList[0]
 
-				executeId(int(cmdList[0]))
+				executeId(int(cmdList[0])-1)
 				idFlag = 1
 
 			return
@@ -831,6 +848,21 @@ def markPostRead(postNum):
 	global postList
 
 	post = postList[postNum].subject
+	if(isPostRead(post)):
+		return
+
+	fileName = readPostsPath + name+"posts.txt"
+	postsFile = open(fileName, 'a+')
+
+	postsFile.write(post+"\n")
+	postsFile.close()
+
+def markPostReadByName(postObj):
+	post = postObj.subject
+	global postList
+
+	print("MARKING READ: ", post)
+
 	if(isPostRead(post)):
 		return
 
