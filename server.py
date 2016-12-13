@@ -139,6 +139,7 @@ def handleRG(info, currsocket):
 	pickleSend(currsocket, "READGROUP", toSend)
 
 def handlePostCount(info, currsocket):
+	infoList = info.split()
 	gname = infoList[0]
 
 	toSend = []
@@ -148,6 +149,7 @@ def handlePostCount(info, currsocket):
 		if(post.gname == gname):
 			toSendCount+=1
 
+	print("SENDCOUNT: ", toSendCount)
 	pickleSendPost(currsocket, "POSTCOUNT", toSendCount, gname)
 
 

@@ -117,88 +117,92 @@ def handleInput(i):
 	if cmdList == []:
 		return
 
-	#Check if we're in a command "mode." These return immediately after executing
-	#if(connectionStatus ==1):
-		#runTests()
 
-	#SUB AG COMMANDS
-	if(currentCmd == "ALLGROUPS"):
-		handleAllGroupsSubCommand(cmdList)
-		return
+	try:
+		#Check if we're in a command "mode." These return immediately after executing
+		#if(connectionStatus ==1):
+			#runTests()
 
-	elif(currentCmd == "SUBGROUPS"):
-		handleSubscribedGroupsSubCommand(cmdList)
-		return
+		#SUB AG COMMANDS
+		if(currentCmd == "ALLGROUPS"):
+			handleAllGroupsSubCommand(cmdList)
+			return
 
-	elif(currentCmd == "READGROUP"):
-		handleReadGroupSubCommand(cmdList)
-		return
+		elif(currentCmd == "SUBGROUPS"):
+			handleSubscribedGroupsSubCommand(cmdList)
+			return
+
+		elif(currentCmd == "READGROUP"):
+			handleReadGroupSubCommand(cmdList)
+			return
 
 
-	#Login Command
-	elif(cmdList[0] == "login" and len(cmdList)==2):
-		if(debug): print("Calling Login", cmdList[1])
+		#Login Command
+		elif(cmdList[0] == "login" and len(cmdList)==2):
+			if(debug): print("Calling Login", cmdList[1])
 
-		handleLogin(cmdList[1])
-		return
+			handleLogin(cmdList[1])
+			return
 
-	elif(cmdList[0] == "help"):
-		handleHelp()
-		return
+		elif(cmdList[0] == "help"):
+			handleHelp()
+			return
 
-	#Disallow other commands if not logged in.
-	elif(connectionStatus==0):
-		print("Unrecognized Command")
-		return
+		#Disallow other commands if not logged in.
+		elif(connectionStatus==0):
+			print("Unrecognized Command")
+			return
 
-	#Logout Command
-	elif(cmdList[0] == "logout"):
-		if(debug): print("Calling Logout")
-		handleLogout()
-		return
+		#Logout Command
+		elif(cmdList[0] == "logout"):
+			if(debug): print("Calling Logout")
+			handleLogout()
+			return
 
-	#Exit Command
-	elif(cmdList[0] == "exit"):
-		print("Exiting...")
-		sys.exit()
+		#Exit Command
+		elif(cmdList[0] == "exit"):
+			print("Exiting...")
+			sys.exit()
 
-	#ag Command
-	elif(cmdList[0] == "ag" and (len(cmdList)==1 or len(cmdList)==2)):
-		#Set the optional nValue
-		if(len(cmdList)==2):
-			resetNValue(int(cmdList[1]))
-			if(debug): print("nValue set: ", nValue)
-		else: resetNValue(defaultN)
-
-		handleAllGroups(cmdList)
-		return
-
-	#sg Command
-	elif(cmdList[0] == "sg" and (len(cmdList)==1 or len(cmdList)==2)):
-		#Set the optional nValue
-		if(len(cmdList)==2):
-			resetNValue(int(cmdList[1]))
-			if(debug): print("nValue set: ", nValue)
-		else: resetNValue(defaultN)
-		print("NVALUE: ", nValue)
-		handleSubscribedGroups(cmdList)
-		return
-
-	#rg Command
-	elif(cmdList[0] == "rg" and (len(cmdList)==2 or len(cmdList)==3)):
-		#Set the optional nValue
-		if(amSubscribed(cmdList[1])):
-			if(len(cmdList)==3):
-				resetNValue(int(cmdList[2]))
+		#ag Command
+		elif(cmdList[0] == "ag" and (len(cmdList)==1 or len(cmdList)==2)):
+			#Set the optional nValue
+			if(len(cmdList)==2):
+				resetNValue(int(cmdList[1]))
 				if(debug): print("nValue set: ", nValue)
 			else: resetNValue(defaultN)
-			handleReadGroup(cmdList)
-			return
-		print("Not subscribed to group.")
-		return
 
-	else:
-		print("Unrecognized Command, Incorrect Format, Or Command Is Not Available At This Time")
+			handleAllGroups(cmdList)
+			return
+
+		#sg Command
+		elif(cmdList[0] == "sg" and (len(cmdList)==1 or len(cmdList)==2)):
+			#Set the optional nValue
+			if(len(cmdList)==2):
+				resetNValue(int(cmdList[1]))
+				if(debug): print("nValue set: ", nValue)
+			else: resetNValue(defaultN)
+			print("NVALUE: ", nValue)
+			handleSubscribedGroups(cmdList)
+			return
+
+		#rg Command
+		elif(cmdList[0] == "rg" and (len(cmdList)==2 or len(cmdList)==3)):
+			#Set the optional nValue
+			if(amSubscribed(cmdList[1])):
+				if(len(cmdList)==3):
+					resetNValue(int(cmdList[2]))
+					if(debug): print("nValue set: ", nValue)
+				else: resetNValue(defaultN)
+				handleReadGroup(cmdList)
+				return
+			print("Not subscribed to group.")
+			return
+
+		else:
+			print("Unrecognized Command, Incorrect Format, Or Command Is Not Available At This Time")
+	except:
+		print("Formatting returned exception.")
 
 #Multithreading to support stdin and server input
 def recvFunc(threadName, val):
@@ -237,12 +241,14 @@ def handleServerInput(protocol, list, gname):
 		displayPosts()
 
 	if(protocol=="NEWPOST"):
+		setPostCount(gname, list)
 		checkAlert(gname, list)
 		#print("POSTCOUNT: ", list)
 		#print("GROUP: ", gname)
 
 	if(protocol=="POSTCOUNT"):
 		setPostCount(gname, list)
+		print(gname, list)
 
 	if(protocol=="LOGOUT"):
 		logout = clientSocket.recv(1024)
@@ -305,8 +311,11 @@ def displayPosts():
 def sortPosts():
 	global postList
 
-	postList = sorted(postList, key=byTime_key, reverse=True)
-	postList = sorted(postList, key=byIsRead_key)
+	try:
+		postList = sorted(postList, key=byTime_key, reverse=True)
+		postList = sorted(postList, key=byIsRead_key)
+	except:
+		return
 	#print("TEST")
 
 
@@ -343,6 +352,7 @@ def handleLogin(username):
         #print ('From Server:', modifiedSentence)
 
         name = username
+        initSubFile()
         connectionStatus = 1
         print("Logged in as", name+".")
         _thread.start_new_thread(recvFunc, ("recvThread",2,))
@@ -724,6 +734,7 @@ def subscribeToGroup(gname):
 	subFile.write(gname+"\n")
 	subFile.close()
 	initPostCount(gname)
+	requestPostCount(gname)
 
 def unsubscribeToGroup(gname):
 	fileName = subPath + name+"sub.txt"
@@ -804,17 +815,19 @@ def getPostCount(gname):
 	f.seek(0)
 
 	#print(gname)
-	gname = stripEndTags(gname)
+	gname = gname.encode().rstrip()
 
 	g = 0
 	for line in d:
+		line = line.rstrip()
+		#print("LINE: ", line, "GNAME: ", gname)
 		l = line.decode()
-		line = stripEndTags(line.decode())
-
+		#print("LINE: ", line)
 		#print("LINE: ",line)
 		#print("GNAME: ", gname)
 		if(g==1):
 			f.close()
+			#print("POSTCOUNT: ", l)
 			return l
 		elif(line==gname):
 			#print("FOUND IT")
@@ -823,7 +836,7 @@ def getPostCount(gname):
 
 	return "111"
 
-def setPostCount(gname, count):
+def setPostCount(gname, countvar):
 	fileName = postCountPath + name + "count.txt"
 	with open(fileName, 'a+b') as countFile:
 
@@ -834,17 +847,18 @@ def setPostCount(gname, count):
 		for line in countFile:
 			count = count+1
 			if(count%2!=0):
+				#print(line, gname.encode())
 				if(line==gname.encode() +b'\r\n'):
 					lineNo = count
-
+	#print("LINENO: ", lineNo)				
 	#Remove the line and the next
 	if(lineNo!=-1):
-		modLine(fileName,lineNo+1, count)
+		modLine(fileName,lineNo+1, countvar)
 
 def requestPostCount(gname):
 	global clientSocket
 	message = "POSTCOUNT " + gname
-	clientSocket.send(clientSocket, message)
+	sendEncoded(clientSocket, message)
 
 def removePostCount(gname):
 	fileName = postCountPath + name + "count.txt"
@@ -885,7 +899,9 @@ def modLine(fileName, lineNo, mod):
 	for i in d:
 	    if(lineNo != count):
 	    	f.write(i)
-	    else: f.write(mod)
+	    else: 
+	    	f.write(str(mod) + "\n")
+	    	#print("MODDED: ", mod)
 	    count = count + 1
 	f.truncate()
 	f.close()
