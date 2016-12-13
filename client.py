@@ -179,6 +179,7 @@ def handleInput(i):
 			resetNValue(int(cmdList[1]))
 			if(debug): print("nValue set: ", nValue)
 		else: resetNValue(defaultN)
+		print("NVALUE: ", nValue)
 		handleSubscribedGroups(cmdList)
 		return
 
@@ -268,8 +269,7 @@ def displayAllGroups():
 def displaySubGroups():
 	global currentDisplay
 
-
-	if(currentDisplay = []):
+	if(currentDisplay == []):
 		currentCmd = ""
 		print("Quitting Subscribed Groups Sub Menu")
 		return

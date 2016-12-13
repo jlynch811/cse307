@@ -1,5 +1,0 @@
-<<<<<<< HEAD
-{"posts": [{"author": "madskillz29", "timeStamp": "Sun, Dec 11 19:23:58 EST 2016", "post": "I don't know enough about php to make a meaningful post.", "subject": "Not sure what this is"}, {"author": "csd", "timeStamp": "Sun, Dec 11 19:39:03 EST 2016", "subject": "Not sure what this is", "post": "I'm right there with ya bud."}, {"author": "user45", "timeStamp": "Sun, Dec 11 19:49:06 EST 2016", "post": "I like this for websites.", "subject": "Cool!"}]}
-=======
-{"posts": [{"subject": "Not sure what this is", "post": "I don't know enough about php to make a meaningful post.", "timeStamp": "Sun, Dec 11 19:23:58 EST 2016", "author": "madskillz29"}, {"post": "I'm right there with ya bud.", "author": "csd", "timeStamp": "Sun, Dec 11 19:39:03 EST 2016", "subject": "Not sure what this is"}, {"timeStamp": "Sun, Dec 11 19:49:06 EST 2016", "post": "I like this for websites.", "subject": "Cool!", "author": "user45"}]}
->>>>>>> cebb42f728728be25f20c4ee8a4091917aece7cd
