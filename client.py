@@ -248,7 +248,7 @@ def handleServerInput(protocol, list, gname):
 
 	if(protocol=="POSTCOUNT"):
 		setPostCount(gname, list)
-		print(gname, list)
+		#print(gname, list)
 
 	if(protocol=="LOGOUT"):
 		logout = clientSocket.recv(1024)
@@ -298,9 +298,26 @@ def displayPosts():
 	global nValue
 	global startRange
 	global endRange
+	global currentCmd
+	global currentGroup
+	global idFlag
 
 	c= startRange
 	count = 0
+
+	if(startRange>=len(postList)):
+		if(idFlag==1):
+			markPostReadByName(currentPost)
+			idFlag = 0
+			resetPostN()
+			displayPosts()
+			return
+
+		currentCmd = ""
+		currentGroup = ""
+		postList = []
+		print("Quitting Read Group Sub Menu")
+		return
 
 	for post in postList:
 		if(count>=startRange and count<=endRange):
@@ -649,7 +666,7 @@ def handleReadGroupSubCommand(cmdList):
 	#[id] command
 	else:
 		try:
-			if(int(cmdList[0]) >=1 and int(cmdList[0]) <= nValue):
+			if(int(cmdList[0])):
 				message = "ID " + cmdList[0]
 
 				executeId(int(cmdList[0])-1)
@@ -923,7 +940,7 @@ def markPostReadByName(postObj):
 	post = postObj.subject
 	global postList
 
-	print("MARKING READ: ", post)
+	#print("MARKING READ: ", post)
 
 	if(isPostRead(post)):
 		return
@@ -961,6 +978,7 @@ def displayPostFile():
 	global nValue
 	global postStart
 	global postEnd
+	global idFlag
 
 	pr = ""
 	fileName = "cur.txt"
@@ -970,8 +988,17 @@ def displayPostFile():
 	for i in d:
 		if(count>=postStart and count<=postEnd):
 			pr = pr + i
+		#print("COUNT: ", count)
 		count+=1
+	#print("START: ", postStart, "COunt: ", count)
 
+	if(count<=postStart):
+		if(idFlag==1):
+			markPostReadByName(currentPost)
+			idFlag = 0
+			resetPostN()
+			displayPosts()
+			return
 	f.close()
 	print(pr)
 
