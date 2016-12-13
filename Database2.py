@@ -1,4 +1,5 @@
 import json
+import datetime
 from Database import *
 #from server import *
 
@@ -18,7 +19,7 @@ class Post:
 		self.gname = gname
 
 	def getTimeStamp(self):
-		return 0.1
+		return format(datetime.datetime.now())
         
     
 def saveDiscussionGroupsAndPosts(groups, posts):
