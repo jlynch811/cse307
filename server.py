@@ -1,6 +1,7 @@
 # CSE 310 Group Project
 # Jonathan Lynch 109030898
 
+import Database2
 from socket import *
 import select
 import sys
@@ -38,19 +39,26 @@ debug=1
 
 #Lists
 def loadGroups(filePath):
+	return Database2.loadDiscussionGroups()
+
+	'''
 	gp = []
 	for i in range(0,10):
 		gp.append(Group(11111, "Somesubject"+str(i)))
 
 	return gp
+	'''
 
 def loadPosts(filePath):
+	return Database2.loadPosts()
+	'''
 	pp = []
 	for j in range(0, 10):
 		for i in range(0,10):
 			pp.append(Post(j*10 + i, str(i)+"th subject", "hello my name is slim shady\nhellooksokspkpokpkoasdasdasd\nthe greatness of valhalla\ni like eggs and bacon and hamburgers for breakfast\nhello world goodbye world hello world\n gooooodddddddd byyeeeee cruel world\nmicrophones r like headphones without the ability to listen", "person "+str(i), "Somesubject"+str(j)))
 
 	return pp
+	'''
 
 groupList = loadGroups("no current filepath")
 postList = loadPosts("no current filepath")
@@ -130,6 +138,8 @@ def handleRG(info, currsocket):
 def handlePostCommand(package, currsocket, allsockets, serversocket):
 	if(package.protocol == "MAKEPOST"):
 		postList.append(package.objlist)
+		Database2.appendPost(package.objlist)
+
 		pickleSend(currsocket, "MAKEPOST", "SUCCESS")
 
 		currGroup = package.objlist.gname
@@ -170,24 +180,28 @@ while socketList:
 
 		#Not server socket. Handle what client sent
 		else:
-			message = s.recv(1024) 
-			print("Received from client: ", message)
+			try:
+				message = s.recv(1024) 
+				print("Received from client: ", message)
 
-			#CHECK FOR EOF
-			if(not message):
-				print("RECEIVED EOF")
-				#sendEncoded(s, "LOGOUT")	
-				pickleSend(s, "LOGOUT", None)
+				#CHECK FOR EOF
+				if(not message):
+					print("RECEIVED EOF")
+					#sendEncoded(s, "LOGOUT")	
+					pickleSend(s, "LOGOUT", None)
+					s.close()
+					socketList.remove(s)
+
+				else:
+					#s.send(message)
+					try: 
+						message = pickle.loads(message)
+						handlePostCommand(message, s, readSockets, serverSocket)
+					except: 
+						handleUserCommand(message.decode(), s)
+			except ConnectionResetError:
 				s.close()
 				socketList.remove(s)
-
-			else:
-				#s.send(message)
-				try: 
-					message = pickle.loads(message)
-					handlePostCommand(message, s, readSockets, serverSocket)
-				except: 
-					handleUserCommand(message.decode(), s)
 
 	
 			
