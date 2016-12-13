@@ -7,6 +7,7 @@ import sys
 import pickle
 import _thread
 import os
+import datetime
 #from Database import *
 
 serverName = 'localhost'
@@ -49,7 +50,7 @@ class Group:
 class Post: 
 
 	def getTimeStamp(self):
-		return 0.1
+		return format(datetime.datetime.now())
 
 	def __init__(self, pid, subject, body, userid, gname):
 		self.pid = pid
@@ -240,6 +241,9 @@ def handleServerInput(protocol, list, gname):
 		#print("POSTCOUNT: ", list)
 		#print("GROUP: ", gname)
 
+	if(protocol=="POSTCOUNT"):
+		setPostCount(gname, list)
+
 	if(protocol=="LOGOUT"):
 		logout = clientSocket.recv(1024)
 
@@ -268,6 +272,7 @@ def displayAllGroups():
 		count+=1
 def displaySubGroups():
 	global currentDisplay
+	global currentCmd
 
 	if(currentDisplay == []):
 		currentCmd = ""
@@ -300,7 +305,7 @@ def displayPosts():
 def sortPosts():
 	global postList
 
-	postList = sorted(postList, key=byTime_key)
+	postList = sorted(postList, key=byTime_key, reverse=True)
 	postList = sorted(postList, key=byIsRead_key)
 	#print("TEST")
 
@@ -818,7 +823,28 @@ def getPostCount(gname):
 
 	return "111"
 
+def setPostCount(gname, count):
+	fileName = postCountPath + name + "count.txt"
+	with open(fileName, 'a+b') as countFile:
 
+		lineNo = -1
+		d = countFile.readlines()
+		countFile.seek(0)
+		count=0
+		for line in countFile:
+			count = count+1
+			if(count%2!=0):
+				if(line==gname.encode() +b'\r\n'):
+					lineNo = count
+
+	#Remove the line and the next
+	if(lineNo!=-1):
+		modLine(fileName,lineNo+1, count)
+
+def requestPostCount(gname):
+	global clientSocket
+	message = "POSTCOUNT " + gname
+	clientSocket.send(clientSocket, message)
 
 def removePostCount(gname):
 	fileName = postCountPath + name + "count.txt"
@@ -847,6 +873,19 @@ def removeLine(fileName, lineNo):
 	for i in d:
 	    if(lineNo != count):
 	    	f.write(i)
+	    count = count + 1
+	f.truncate()
+	f.close()
+
+def modLine(fileName, lineNo, mod):
+	f = open(fileName,"r+")
+	d = f.readlines()
+	f.seek(0)
+	count = 1
+	for i in d:
+	    if(lineNo != count):
+	    	f.write(i)
+	    else: f.write(mod)
 	    count = count + 1
 	f.truncate()
 	f.close()
