@@ -1,1 +1,5 @@
+<<<<<<< HEAD
 {"posts": [{"author": "Ken Bone", "timeStamp": "Sun, Dec 11 19:23:58 EST 2016", "post": "It's literally the same thing.", "subject": "How is this different than Java"}, {"author": "Kennny", "timeStamp": "Sun, Dec 11 19:39:03 EST 2016", "subject": "Can I make iphone games with this?", "post": "Title."}, {"author": "Stan", "timeStamp": "Sun, Dec 11 19:49:06 EST 2016", "post": "I don't think so.", "subject": "Can I make iphone games with this?"}]}
+=======
+{"posts": [{"post": "It's literally the same thing.", "subject": "How is this different than Java", "timeStamp": "Sun, Dec 11 19:23:58 EST 2016", "author": "Ken Bone"}, {"post": "Title.", "subject": "Can I make iphone games with this?", "author": "Kennny", "timeStamp": "Sun, Dec 11 19:39:03 EST 2016"}, {"post": "I don't think so.", "subject": "Can I make iphone games with this?", "timeStamp": "Sun, Dec 11 19:49:06 EST 2016", "author": "Stan"}, {"post": "goodbye\n", "subject": "hello1", "author": "me", "timeStamp": 0.1}]}
+>>>>>>> cebb42f728728be25f20c4ee8a4091917aece7cd

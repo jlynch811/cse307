@@ -1,6 +1,7 @@
 # CSE 310 Group Project
 # Jonathan Lynch 109030898
 
+import datetime
 import Database2
 from socket import *
 import select
@@ -30,7 +31,7 @@ class Post:
 		self.gname = gname
 
 	def getTimeStamp(self):
-		return 0.1
+		return format(datetime.datetime.now())
 
 #Program
 serverPort = 5898

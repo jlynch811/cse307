@@ -267,6 +267,13 @@ def displayAllGroups():
 		count+=1
 def displaySubGroups():
 	global currentDisplay
+
+
+	if(currentDisplay = []):
+		currentCmd = ""
+		print("Quitting Subscribed Groups Sub Menu")
+		return
+
 	count = 0
 	for groupname in currentDisplay:
 		pCount = getPostCount(groupname)

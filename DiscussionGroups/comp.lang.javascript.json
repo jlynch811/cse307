@@ -1,1 +1,5 @@
+<<<<<<< HEAD
 {"posts": [{"author": "Anon", "timeStamp": "Sun, Dec 11 19:23:58 EST 2016", "post": "I am learning how to use javascript and I just can't figure out why I have so many bugs in my program. HELP!!!", "subject": "Impossible to detect errors"}, {"author": "jsjs", "timeStamp": "Sun, Dec 11 19:39:03 EST 2016", "subject": "Impossible to detect errors", "post": "I'm gonna need to see some code."}, {"author": "brick5", "timeStamp": "Sun, Dec 11 19:49:06 EST 2016", "post": "How can I do this?", "subject": "Adding events to webpages"}]}
+=======
+{"posts": [{"subject": "Impossible to detect errors", "post": "I am learning how to use javascript and I just can't figure out why I have so many bugs in my program. HELP!!!", "timeStamp": "Sun, Dec 11 19:23:58 EST 2016", "author": "Anon"}, {"post": "I'm gonna need to see some code.", "author": "jsjs", "timeStamp": "Sun, Dec 11 19:39:03 EST 2016", "subject": "Impossible to detect errors"}, {"timeStamp": "Sun, Dec 11 19:49:06 EST 2016", "post": "How can I do this?", "subject": "Adding events to webpages", "author": "brick5"}]}
+>>>>>>> cebb42f728728be25f20c4ee8a4091917aece7cd
