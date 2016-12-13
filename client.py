@@ -801,6 +801,8 @@ def amSubscribed(gname):
 		for line in subFile:
 			if(line==gname.encode() +b'\r\n'):
 				return 1
+			elif(line==gname.encode() +b'\n'):
+				return 1
 			elif(line==gname.encode()):
 				return 1
 	return 0
