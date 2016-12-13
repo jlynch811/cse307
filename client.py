@@ -241,8 +241,8 @@ def handleServerInput(protocol, list, gname):
 		displayPosts()
 
 	if(protocol=="NEWPOST"):
-		setPostCount(gname, list)
-		checkAlert(gname, list)
+		setPostCount(gname.gname, list)
+		checkAlert(gname.gname, list)
 		#print("POSTCOUNT: ", list)
 		#print("GROUP: ", gname)
 
