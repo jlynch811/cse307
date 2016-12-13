@@ -34,6 +34,7 @@ postList = []
 idFlag = 0
 threadExit = 0
 defaultN = 5
+updatePost = None
 
 #Structures
 
@@ -118,91 +119,91 @@ def handleInput(i):
 		return
 
 
-	try:
-		#Check if we're in a command "mode." These return immediately after executing
-		#if(connectionStatus ==1):
-			#runTests()
+	#try:
+	#Check if we're in a command "mode." These return immediately after executing
+	#if(connectionStatus ==1):
+		#runTests()
 
-		#SUB AG COMMANDS
-		if(currentCmd == "ALLGROUPS"):
-			handleAllGroupsSubCommand(cmdList)
-			return
+	#SUB AG COMMANDS
+	if(currentCmd == "ALLGROUPS"):
+		handleAllGroupsSubCommand(cmdList)
+		return
 
-		elif(currentCmd == "SUBGROUPS"):
-			handleSubscribedGroupsSubCommand(cmdList)
-			return
+	elif(currentCmd == "SUBGROUPS"):
+		handleSubscribedGroupsSubCommand(cmdList)
+		return
 
-		elif(currentCmd == "READGROUP"):
-			handleReadGroupSubCommand(cmdList)
-			return
+	elif(currentCmd == "READGROUP"):
+		handleReadGroupSubCommand(cmdList)
+		return
 
 
-		#Login Command
-		elif(cmdList[0] == "login" and len(cmdList)==2):
-			if(debug): print("Calling Login", cmdList[1])
+	#Login Command
+	elif(cmdList[0] == "login" and len(cmdList)==2):
+		if(debug): print("Calling Login", cmdList[1])
 
-			handleLogin(cmdList[1])
-			return
+		handleLogin(cmdList[1])
+		return
 
-		elif(cmdList[0] == "help"):
-			handleHelp()
-			return
+	elif(cmdList[0] == "help"):
+		handleHelp()
+		return
 
-		#Disallow other commands if not logged in.
-		elif(connectionStatus==0):
-			print("Unrecognized Command")
-			return
+	#Disallow other commands if not logged in.
+	elif(connectionStatus==0):
+		print("Unrecognized Command")
+		return
 
-		#Logout Command
-		elif(cmdList[0] == "logout"):
-			if(debug): print("Calling Logout")
-			handleLogout()
-			return
+	#Logout Command
+	elif(cmdList[0] == "logout"):
+		if(debug): print("Calling Logout")
+		handleLogout()
+		return
 
-		#Exit Command
-		elif(cmdList[0] == "exit"):
-			print("Exiting...")
-			sys.exit()
+	#Exit Command
+	elif(cmdList[0] == "exit"):
+		print("Exiting...")
+		sys.exit()
 
-		#ag Command
-		elif(cmdList[0] == "ag" and (len(cmdList)==1 or len(cmdList)==2)):
-			#Set the optional nValue
-			if(len(cmdList)==2):
-				resetNValue(int(cmdList[1]))
+	#ag Command
+	elif(cmdList[0] == "ag" and (len(cmdList)==1 or len(cmdList)==2)):
+		#Set the optional nValue
+		if(len(cmdList)==2):
+			resetNValue(int(cmdList[1]))
+			if(debug): print("nValue set: ", nValue)
+		else: resetNValue(defaultN)
+
+		handleAllGroups(cmdList)
+		return
+
+	#sg Command
+	elif(cmdList[0] == "sg" and (len(cmdList)==1 or len(cmdList)==2)):
+		#Set the optional nValue
+		if(len(cmdList)==2):
+			resetNValue(int(cmdList[1]))
+			if(debug): print("nValue set: ", nValue)
+		else: resetNValue(defaultN)
+		print("NVALUE: ", nValue)
+		handleSubscribedGroups(cmdList)
+		return
+
+	#rg Command
+	elif(cmdList[0] == "rg" and (len(cmdList)==2 or len(cmdList)==3)):
+		#Set the optional nValue
+		if(amSubscribed(cmdList[1])):
+			if(len(cmdList)==3):
+				resetNValue(int(cmdList[2]))
 				if(debug): print("nValue set: ", nValue)
 			else: resetNValue(defaultN)
-
-			handleAllGroups(cmdList)
+			handleReadGroup(cmdList)
 			return
+		print("Not subscribed to group.")
+		return
 
-		#sg Command
-		elif(cmdList[0] == "sg" and (len(cmdList)==1 or len(cmdList)==2)):
-			#Set the optional nValue
-			if(len(cmdList)==2):
-				resetNValue(int(cmdList[1]))
-				if(debug): print("nValue set: ", nValue)
-			else: resetNValue(defaultN)
-			print("NVALUE: ", nValue)
-			handleSubscribedGroups(cmdList)
-			return
-
-		#rg Command
-		elif(cmdList[0] == "rg" and (len(cmdList)==2 or len(cmdList)==3)):
-			#Set the optional nValue
-			if(amSubscribed(cmdList[1])):
-				if(len(cmdList)==3):
-					resetNValue(int(cmdList[2]))
-					if(debug): print("nValue set: ", nValue)
-				else: resetNValue(defaultN)
-				handleReadGroup(cmdList)
-				return
-			print("Not subscribed to group.")
-			return
-
-		else:
-			print("Unrecognized Command, Incorrect Format, Or Command Is Not Available At This Time")
-	except:
-		print("Formatting returned exception.")
+	else:
+		print("Unrecognized Command, Incorrect Format, Or Command Is Not Available At This Time")
+	#except:
+		#print("Formatting returned exception.")
 
 #Multithreading to support stdin and server input
 def recvFunc(threadName, val):
@@ -226,6 +227,7 @@ def handleServerInput(protocol, list, gname):
 	global postList
 	global threadExit
 	global connectionStatus
+	global updatePost
 
 	if(debug): print("PROTOCOL: ", protocol)
 
@@ -243,8 +245,12 @@ def handleServerInput(protocol, list, gname):
 	if(protocol=="NEWPOST"):
 		setPostCount(gname.gname, list)
 		checkAlert(gname.gname, list)
+		updatePost = gname
 		#print("POSTCOUNT: ", list)
 		#print("GROUP: ", gname)
+
+	if(protocol=="CONFIRMPOST"):
+		displayPosts()
 
 	if(protocol=="POSTCOUNT"):
 		setPostCount(gname, list)
@@ -256,6 +262,18 @@ def handleServerInput(protocol, list, gname):
 		clientSocket.close()
 		connectionStatus = 0
 		threadExit = 1
+
+def updatePostList():
+	global postList
+	global updatePost
+	global resetNValue
+
+	resetNValue(nValue)
+
+	postList.insert(0, updatePost)
+
+
+	updatePost = None
 
 
 def checkAlert(gname, pCount):
@@ -301,6 +319,9 @@ def displayPosts():
 	global currentCmd
 	global currentGroup
 	global idFlag
+	global updatePost
+	if(updatePost is not None):
+		updatePostList()
 
 	c= startRange
 	count = 0
