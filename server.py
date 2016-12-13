@@ -167,6 +167,7 @@ def handlePostCommand(package, currsocket, allsockets, serversocket):
 
 		for s in allsockets:
 			if not(s is serversocket):
+				print("\n\ns: ", str(s) + "\n\n")
 				pickleSendPost(s, "NEWPOST", len(toSend), currGroup)
 
 #Main Program
