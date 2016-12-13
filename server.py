@@ -211,7 +211,7 @@ while socketList:
 					#s.send(message)
 					try: 
 						message = pickle.loads(message)
-						handlePostCommand(message, s, readSockets, serverSocket)
+						handlePostCommand(message, s, socketList, serverSocket)
 					except: 
 						handleUserCommand(message.decode(), s)
 			except ConnectionResetError:
