@@ -192,7 +192,7 @@ def handleInput(i):
 				resetNValue(int(cmdList[1]))
 				if(debug): print("nValue set: ", nValue)
 			else: resetNValue(defaultN)
-			print("NVALUE: ", nValue)
+			#print("NVALUE: ", nValue)
 			handleSubscribedGroups(cmdList)
 			return
 
@@ -239,7 +239,7 @@ def handleServerInput(protocol, list, gname):
 	global connectionStatus
 	global updatePost
 
-	if(debug): print("PROTOCOL: ", protocol)
+	#if(debug): print("PROTOCOL: ", protocol)
 
 
 	if(protocol=="ALLGROUPS"):
@@ -259,7 +259,7 @@ def handleServerInput(protocol, list, gname):
 		#print("POSTCOUNT: ", list)
 		#print("GROUP: ", gname)
 
-	print("PROTOCOL: ", protocol)
+	#print("PROTOCOL: ", protocol)
 	if(protocol=="CONFIRMPOST"):
 		displayPosts()
 
