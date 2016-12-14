@@ -891,6 +891,8 @@ def setPostCount(gname, countvar):
 				#print(line, gname.encode())
 				if(line==gname.encode() +b'\r\n'):
 					lineNo = count
+				elif(line==gname.encode() +b'\n'):
+					lineNo = count
 	#print("LINENO: ", lineNo)				
 	#Remove the line and the next
 	if(lineNo!=-1):
@@ -913,6 +915,8 @@ def removePostCount(gname):
 			count = count+1
 			if(count%2!=0):
 				if(line==gname.encode() +b'\r\n'):
+					lineNo = count
+				elif(line==gname.encode() +b'\n'):
 					lineNo = count
 
 	#Remove the line and the next
