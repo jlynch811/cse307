@@ -39,28 +39,16 @@ serverSocket = socket(AF_INET,SOCK_STREAM)
 debug=1
 
 #Lists
+
+#Loads all groups from database into program
 def loadGroups(filePath):
 	return Database2.loadDiscussionGroups()
 
-	'''
-	gp = []
-	for i in range(0,10):
-		gp.append(Group(11111, "Somesubject"+str(i)))
-
-	return gp
-	'''
-
+#Load all posts from database into program
 def loadPosts(filePath):
 	return Database2.loadPosts()
-	'''
-	pp = []
-	for j in range(0, 10):
-		for i in range(0,10):
-			pp.append(Post(j*10 + i, str(i)+"th subject", "hello my name is slim shady\nhellooksokspkpokpkoasdasdasd\nthe greatness of valhalla\ni like eggs and bacon and hamburgers for breakfast\nhello world goodbye world hello world\n gooooodddddddd byyeeeee cruel world\nmicrophones r like headphones without the ability to listen", "person "+str(i), "Somesubject"+str(j)))
 
-	return pp
-	'''
-
+#Sockets and post/group data
 groupList = loadGroups("no current filepath")
 postList = loadPosts("no current filepath")
 socketList = []
@@ -75,6 +63,7 @@ def sendEncoded(socket, message):
 	print("Sending Message: ", message)
 	socket.send(str.encode(message))
 
+#Gets all the posts in a particular group
 def getGroupPosts(gname):
 	toSend = []
 
@@ -93,18 +82,28 @@ def isPickle(s):
 		return 1
 	else: return 0
 
+#Sends a serialized stream of data to the client
+#currsocket - client socket
+#prefix - protocol
+#obj - object to be sent
 def pickleSend(currsocket, prefix, obj):
 	#Pickle is used to send the array over the socket.
 	p = Package(prefix, obj, None)
 	pickledObj = pickle.dumps(p)
 	currsocket.send(pickledObj)
 
+#Sends a serialized stream of data to the client
+#currsocket - client socket
+#prefix - protocol
+#obj - object to be sent
+#name - name of the object
 def pickleSendPost(currsocket, prefix, obj, name):
 	#Pickle is used to send the array over the socket.
 	p = Package(prefix, obj, name)
 	pickledObj = pickle.dumps(p)
 	currsocket.send(pickledObj)
 
+#Function to handle all of the sent commands
 def handleUserCommand(command, currsocket):
 	cmdList = command.split(None, 1)
 
@@ -120,12 +119,13 @@ def handleUserCommand(command, currsocket):
 	elif(cmdList[0] == "POSTCOUNT"):
 		handlePostCount(cmdList[1], currsocket)
 
-
+#Handles the AG command
 def handleAG(info, currsocket):
 	infoList = info.split()
 	indices = groupList[ int(infoList[0]) : (int(infoList[1]) + 1) ]
 	pickleSend(currsocket, "ALLGROUPS", indices)
 
+#Handles RG command
 def handleRG(info, currsocket):
 	infoList = info.split()
 	gname = infoList[0]
@@ -138,6 +138,7 @@ def handleRG(info, currsocket):
 
 	pickleSend(currsocket, "READGROUP", toSend)
 
+#Handles sending postcount to the client
 def handlePostCount(info, currsocket):
 	infoList = info.split()
 	gname = infoList[0]
@@ -152,7 +153,9 @@ def handlePostCount(info, currsocket):
 	print("SENDCOUNT: ", toSendCount)
 	pickleSendPost(currsocket, "POSTCOUNT", toSendCount, gname)
 
-
+#Handles decoding a sent pickle from the client
+#Only used when client needs to upload a post to the server
+#Then broadcasts a announcement protocol to all clients
 def handlePostCommand(package, currsocket, allsockets, serversocket):
 	if(package.protocol == "MAKEPOST"):
 		postList.append(package.objlist)
@@ -184,6 +187,7 @@ socketList = socketList + [serverSocket]
 #connectionSocket, addr = serverSocket.accept()
 #socketList = socketList + [connectionSocket]
 
+#Select loop, loops to receive messages from client
 while socketList:
 	readSockets, writeSockets, exceptSockets = select.select(socketList, outputSocketList, socketList)
 
