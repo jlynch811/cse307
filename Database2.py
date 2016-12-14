@@ -21,7 +21,7 @@ class Post:
 	def getTimeStamp(self):
 		return format(datetime.datetime.now())
         
-    
+# Saves the arrays of Group and Post objects into their specified json files    
 def saveDiscussionGroupsAndPosts(groups, posts):
     for group in groups:
         addDiscussionGroup(group.name)
@@ -33,7 +33,7 @@ def appendPost(post):
     addPost(post.gname, post.subject, post.userid, post.time, post.body)
         
     
-        
+# Load all discussion groups from the json files into an array and return it        
 def loadDiscussionGroups():
     groups = getDiscussionGroupNames()
     groupObjects = []
@@ -46,6 +46,7 @@ def loadDiscussionGroups():
         
     return groupObjects
 
+# Loads all posts from their json files into an array and returns it
 def loadPosts():
     groupNames = getDiscussionGroupNames()
 
@@ -62,7 +63,7 @@ def loadPosts():
     
     return posts
 
-groups = loadDiscussionGroups()
-posts = loadPosts()
+#groups = loadDiscussionGroups()
+#posts = loadPosts()
 
-saveDiscussionGroupsAndPosts(groups, posts)
+#saveDiscussionGroupsAndPosts(groups, posts)

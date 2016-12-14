@@ -61,12 +61,15 @@ class Post:
 		self.time = self.getTimeStamp()
 		self.gname = gname
 
+# Checks if a post is read by a its subject
 def byIsRead_key(post):
 	return isPostRead(post.subject)
 
+# Getter for the post timestamp
 def byTime_key(post):
 	return post.time
 
+# Sets the global variables for the range of discussion groups or posts to get from the server
 def nextN():
 	global startRange
 	global endRange
@@ -75,11 +78,13 @@ def nextN():
 	startRange = startRange + nValue
 	endRange = endRange + nValue
 
+# Sends a message to the server to get the posts or groups from the given range
 def sendNextN(protocol):
 	nextN()
 	message = protocol + " " + str(startRange) + " " + str(endRange)
 	sendEncoded(clientSocket, message)
 
+# Sets the global variables for the next n lines from a post
 def postNextN():
 	global postStart
 	global postEnd
@@ -88,6 +93,7 @@ def postNextN():
 	postStart = postStart + nValue
 	postEnd = postEnd + nValue
 
+# Resets the global variables for the range
 def resetPostN():
 	global postStart
 	global postEnd
@@ -96,10 +102,12 @@ def resetPostN():
 	postStart = 0
 	postEnd = nValue-1
 
+# Gets the next n subscribed groups from a user and handles displaying it
 def subNextN():
 	nextN()
 	handleSubscribedGroups("")
 
+# Resets the range variables
 def resetNValue(n):
 	global startRange
 	global endRange
@@ -109,6 +117,7 @@ def resetNValue(n):
 	startRange = 0
 	endRange = nValue-1
 
+# Parses user input and handles it accordingly
 def handleInput(i):
 	global currentCmd
 	global nValue
@@ -222,6 +231,7 @@ def recvFunc(threadName, val):
 			threadExit=0
 			return
 
+# Parses what the server sends back from a request and handles it
 def handleServerInput(protocol, list, gname):
 	global currentDisplay
 	global postList
@@ -264,6 +274,7 @@ def handleServerInput(protocol, list, gname):
 		connectionStatus = 0
 		threadExit = 1
 
+# Updates the list of posts if they updated on the server
 def updatePostList():
 	global postList
 	global updatePost
@@ -276,13 +287,14 @@ def updatePostList():
 
 	updatePost = None
 
-
+# Alerts if a new post was made in a subscribed group
 def checkAlert(gname, pCount):
 	if(amSubscribed==0):
 		return
 	alert = "\nALERT: NEW POST IN SUBSCRIBED GROUP - " + gname +"\n"
 	print(alert)
 
+# Displays all discussion groups until there are not more. In that case it quits out of the view groups
 def displayAllGroups():
 	global currentCmd
 	count = 0
@@ -295,6 +307,8 @@ def displayAllGroups():
 	for group in currentDisplay:
 		print(str(count+1)+ ". \t("+amSubscribedPrint(group.name)+")\t "+ group.name)
 		count+=1
+
+# Displays all of the subscribed groups until there are no more left. In that case it exits out of the subscribed groups view        
 def displaySubGroups():
 	global currentDisplay
 	global currentCmd
@@ -312,6 +326,7 @@ def displaySubGroups():
 		print(newS)
 		count+=1
 
+# Displays all posts from a group in a certain range
 def displayPosts():
 	global postList
 	global nValue
@@ -347,6 +362,7 @@ def displayPosts():
 		count = count+1
 		c = c+1
 
+# Sorts posts by time stamp and by if they are read or not
 def sortPosts():
 	global postList
 
@@ -358,6 +374,7 @@ def sortPosts():
 	#print("TEST")
 
 
+# Removes the return and newline characters from the end of lines
 def stripEndTags(s):
 	if(s.endswith('\r')):
 		s = s[:2]
@@ -368,11 +385,13 @@ def stripEndTags(s):
 
 	return s
 
+# Gets rid of the newline character from a string
 def stripN(s):
 	if(s.endswith('\n')):
 		s = s[:2]
 	return s
 
+# Handle a user logging in and find out if they have an account already
 def handleLogin(username):
     global connectionStatus
     global name
@@ -401,6 +420,7 @@ def handleLogin(username):
     else:
         print("Already logged in")
 
+# Prints out the help display with information on all of the possible commands
 def handleHelp():
 	print("\n\t\t---COMMAND DIRECTORY---\n")
 	print("login <username>\t\tLogs in as <username>")
@@ -549,6 +569,7 @@ def handleSubscribedGroupsSubCommand(cmdList):
 
 	print("Unrecognized Command, Incorrect Format, Or Command Is Not Available At This Time")
 
+# Parse a user trying to unsubscribe from a group and run the command
 def uCommand(cmdList):
 	for val in cmdList[1:]:
 		#print("VAL: ", val)
@@ -562,6 +583,7 @@ def uCommand(cmdList):
 			unsubscribeToGroup(currentDisplay[val].name)
 		except: print("Unable to unsubscribe from group (Likely out of range index)")
 
+# Parse the unsubscribe command from the list of subscribed groups
 def uCommandSub(cmdList):
 	for val in cmdList[1:]:
 		#print("VAL: ", val)
@@ -574,6 +596,7 @@ def uCommandSub(cmdList):
 		#print("CUR DISPLAY: ", currentDisplay[val])
 		unsubscribeToGroup(currentDisplay[val])
 
+# Parse when a user tries to subscribe to a group and run the command
 def sCommand(cmdList):
 	for val in cmdList[1:]:
 			try:
@@ -699,6 +722,7 @@ def handleReadGroupSubCommand(cmdList):
 			print("Unrecognized Command, Incorrect Format, Or Command Is Not Available At This Time")
 			return
 
+# Print out the group, subject, author and timestamp for the current post that the user is trying to read
 def executeId(idd):
 	global currentPost
 	global postList
@@ -716,6 +740,7 @@ def executeId(idd):
 
 	#print("CONTENT:",currentPost.body)
 
+# Copy the current post to a file to save it
 def writePostToFile():
 	global currentPost
 
@@ -729,7 +754,7 @@ def writePostToFile():
 	f.close()
 
 
-
+# Send a post that a user has made to the server to update it for other users on different machines
 def sendPost(subject, content):
 	global currentGroup
 	global name
@@ -739,7 +764,7 @@ def sendPost(subject, content):
 	pickledPost = pickle.dumps(package)
 	clientSocket.send(pickledPost)
 
-
+# Handle a user logging out by closing the connection with the server and terminating the program
 def handleLogout():
 	global connectionStatus
 
@@ -755,12 +780,12 @@ def handleLogout():
 	#clientSocket.close()
 	#connectionStatus = 0
 
-
+# Send an encoded message to the server
 def sendEncoded(socket, message):
 	if(debug): print("Sending Message: ", message)
 	socket.send(str.encode(message))
 
-
+# Subscribe the current user to a specified group
 def subscribeToGroup(gname):
 	initSubFile()
 	if(amSubscribed(gname)):
@@ -775,6 +800,7 @@ def subscribeToGroup(gname):
 	initPostCount(gname)
 	requestPostCount(gname)
 
+# Unsubscribe the current user from a specified group
 def unsubscribeToGroup(gname):
 	fileName = subPath + name+"sub.txt"
 	f = open(fileName,"r+")
@@ -790,6 +816,7 @@ def unsubscribeToGroup(gname):
 
 	removePostCount(gname)
 
+# Check if the current user is subscribed to a group or not
 def amSubscribed(gname):
 	#if(debug): print("Am Subscribed Check: ", gname.encode())
 
@@ -807,11 +834,13 @@ def amSubscribed(gname):
 				return 1
 	return 0
 
+# If the current user is subscribed to a group, return an s that will be printed inbetween the parenthesis on the command line
 def amSubscribedPrint(gname):
 	if(amSubscribed(gname)):
 		return "s"
 	return " "
 
+# If there user logs in with a new userid, make a new file to hold the user's information
 def initSubFile():
 	fileName = subPath + name + "sub.txt"
 	subFile = open(fileName, 'a+')
@@ -825,6 +854,7 @@ def initSubFile():
 	postsFile = open(fileName, 'a+')
 	postsFile.close()
 
+# If the directories containing all of the users' are not there, create them
 def initDirs():
 	directory = "Subs"
 	if not os.path.exists(directory):
@@ -839,6 +869,7 @@ def initDirs():
 		os.makedirs(directory)
 
 
+# Initialize the text file that holds all of the post counts for the users
 def initPostCount(gname):
 	if(debug): print("InitPostCount")
 	fileName = postCountPath + name + "count.txt"
@@ -849,6 +880,7 @@ def initPostCount(gname):
 	countFile.write("0\n")
 	countFile.close()
 
+# Get the number of posts in a specific group
 def getPostCount(gname):
 	fileName = postCountPath + name + "count.txt"
 	f = open(fileName,"r+b")
@@ -877,6 +909,7 @@ def getPostCount(gname):
 
 	return "111"
 
+# Set the number of posts for a specific group
 def setPostCount(gname, countvar):
 	fileName = postCountPath + name + "count.txt"
 	with open(fileName, 'a+b') as countFile:
@@ -898,11 +931,13 @@ def setPostCount(gname, countvar):
 	if(lineNo!=-1):
 		modLine(fileName,lineNo+1, countvar)
 
+# Request an updated post count from the server
 def requestPostCount(gname):
 	global clientSocket
 	message = "POSTCOUNT " + gname
 	sendEncoded(clientSocket, message)
 
+# Remove a post count from the text file with all the post counts
 def removePostCount(gname):
 	fileName = postCountPath + name + "count.txt"
 	with open(fileName, 'a+b') as countFile:
@@ -924,6 +959,7 @@ def removePostCount(gname):
 		removeLine(fileName,lineNo)
 		removeLine(fileName,lineNo)
 
+# Remove a line from the file specified by filename
 def removeLine(fileName, lineNo):
 	f = open(fileName,"r+")
 	d = f.readlines()
@@ -936,6 +972,7 @@ def removeLine(fileName, lineNo):
 	f.truncate()
 	f.close()
 
+# Change a line in the file
 def modLine(fileName, lineNo, mod):
 	f = open(fileName,"r+")
 	d = f.readlines()
@@ -951,6 +988,7 @@ def modLine(fileName, lineNo, mod):
 	f.truncate()
 	f.close()
 
+# Mark a post as read for a user if the want to mark it as read
 def markPostRead(postNum):
 	global postList
 
@@ -964,6 +1002,7 @@ def markPostRead(postNum):
 	postsFile.write(post+"\n")
 	postsFile.close()
 
+# Mark a post specified by the given name to read
 def markPostReadByName(postObj):
 	post = postObj.subject
 	global postList
@@ -979,11 +1018,13 @@ def markPostReadByName(postObj):
 	postsFile.write(post+"\n")
 	postsFile.close()
 
+# Mark a number of posts in the given range as read
 def markPostRangeRead(start, end):
 
 	for i in range(start, end):
 		markPostRead(i)
 
+# Check if the post specified by name is read or not
 def isPostRead(postName):
 	initSubFile()
 
@@ -999,11 +1040,13 @@ def isPostRead(postName):
 				return 1
 	return 0
 
+# If a post is not read then print out an N next to it, otherwise print nothing
 def displayPostRead(postName):
 	if(isPostRead(postName)):
 		return " "
 	return "N"
 
+# Print out the post file for the current post
 def displayPostFile():
 	global nValue
 	global postStart
@@ -1033,7 +1076,7 @@ def displayPostFile():
 	print(pr)
 
 
-
+# Just runs tests
 def runTests():
 	print("RUNNING TESTS: ")
 	subscribeToGroup("testgroup");
