@@ -989,6 +989,8 @@ def isPostRead(postName):
 		for line in postsFile:
 			if(line==postName.encode() +b'\r\n'):
 				return 1
+			elif(line==postName.encode() +b'\n'):
+				return 1
 			elif(line==postName.encode()):
 				return 1
 	return 0
